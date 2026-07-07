@@ -1,0 +1,491 @@
+% ============================================================
+%  Section 4: Building a Data Warehouse (ETL, Data Quality, Data Wrangling)
+% ============================================================
+\section{Building a Data Warehouse}
+
+% -------- subsection: Process Overview --------
+
+\begin{frame}
+  \frametitle{How a Data Warehouse is Built}
+
+  \begin{block}{The Process: Iterative by Nature}
+    Building a DWH is \textbf{never a one-time project} but an ongoing,
+    iterative effort.
+    New requirements, changed source systems, and evolving business needs
+    continuously shape the DWH.
+  \end{block}
+
+  \begin{block}{The 7 Phases (based on the Rapid Warehousing Methodology)}
+    \begin{enumerate}
+      \item \textbf{Qualification}: Is the organisation ready for a DWH project?
+      \item \textbf{Requirements Analysis}: What data and analyses are needed?
+      \item \textbf{Design}: Architecture, data models, process design
+      \item \textbf{Implementation}: Build ETL processes, load data, develop marts
+      \item \textbf{Acceptance Test}: Validate quality and completeness
+      \item \textbf{Deployment}: Train users, go live
+      \item \textbf{Review}: Lessons learned, plan next iteration
+    \end{enumerate}
+  \end{block}
+\end{frame}
+
+% -------- subsection: Source Analysis --------
+
+\begin{frame}
+  \frametitle{Requirements Analysis: What Do We Need?}
+
+  \begin{block}{Goal}
+    Understand \textbf{what questions the business needs to answer}
+    and what data is required to answer them.
+  \end{block}
+
+  \begin{block}{Key Activities}
+    \begin{itemize}
+      \item Interview stakeholders: managers, analysts, power users
+      \item Identify \textbf{KPIs} and reporting requirements
+      \item Determine required \textbf{grain} (day, week, individual transaction)
+      \item Define the \textbf{history depth} needed (1 year? 10 years?)
+      \item Understand the required \textbf{refresh frequency}:
+        daily batch, near-real-time, or on-demand
+    \end{itemize}
+  \end{block}
+
+  \begin{examples}{Good Questions to Ask Stakeholders}
+    \begin{itemize}
+      \item \textit{``What decisions does your department make every week?''}
+      \item \textit{``What data do you currently look up manually?''}
+      \item \textit{``What would you do if you had this data instantly?''}
+    \end{itemize}
+  \end{examples}
+\end{frame}
+
+% ------------------------------------------------------------
+\begin{frame}
+  \frametitle{Source System Analysis}
+
+  \begin{block}{Goal}
+    Understand the \textbf{data landscape}: what exists, where it lives,
+    how good it is.
+  \end{block}
+
+  \begin{block}{DWH Source Systems Can Be Very Diverse}
+    \begin{itemize}
+      \item Relational databases: Oracle, DB2, SQL Server, PostgreSQL
+      \item ERP / enterprise systems: SAP R/3, SAP BW, Siebel
+      \item Legacy systems: IMS, VSAM, COBOL files
+      \item Web / Internet sources: APIs, web scraping
+      \item Flat files: Excel, CSV, Access, Lotus
+      \item Unstructured text files
+    \end{itemize}
+  \end{block}
+
+  \begin{alertblock}{Common Surprise}
+    Data quality in source systems is \textbf{almost always worse} than
+    anyone expects. Budget significant effort for data cleansing.
+  \end{alertblock}
+\end{frame}
+
+% -------- subsection: ETL Process --------
+
+\begin{frame}
+  \frametitle{The ETL Process}
+
+  \begin{block}{ETL = Extract, Transform, Load}
+    ETL is the central \textbf{data pipeline} that moves data from source
+    systems into the DWH.
+  \end{block}
+
+  % PICTURE PLACEHOLDER
+  \begin{alertblock}{Picture: ETL Flow with Staging Area}
+    \textit{Add a three-layer flow diagram:
+    (Bottom) Operational source systems
+    $\xrightarrow{E}$ Staging Area (raw landing zone)
+    $\xrightarrow{T}$ Transformation (cleanse, harmonise, enrich)
+    $\xrightarrow{L}$ Data Warehouse (storage + data marts).
+    Use arrows labeled E, T, L. Add the ``DWH Manager / Monitor'' below
+    as a control element.}
+  \end{alertblock}
+
+  \begin{block}{Key Principle: Decouple Extraction from Transformation}
+    Extracting data into the staging area first, before transforming it,
+    allows \textbf{validation, profiling, and error handling} without
+    impacting either the source system or the target DWH.
+  \end{block}
+\end{frame}
+
+% -------- subsection: Extraction --------
+
+\begin{frame}
+  \frametitle{Extract: Getting the Data Out}
+
+  \begin{block}{The First Step}
+    Extraction creates access to the operational data sources and copies
+    data into the staging area.
+  \end{block}
+
+  \begin{block}{Extraction Methods}
+    \begin{tabularx}{\linewidth}{@{}l X@{}}
+      \toprule
+      \textbf{Method}             & \textbf{Description} \\
+      \midrule
+      Full Refresh (Data Refresh) & Load all data from scratch on each run \\
+      Delta / Incremental Update  & Load only changes since the last run \\
+      \bottomrule
+    \end{tabularx}
+  \end{block}
+
+  \begin{block}{Change Data Capture (CDC)}
+    \begin{itemize}
+      \item \textbf{Timestamp columns}: filter rows where \texttt{UPDATED\_AT > last\_run}
+      \item \textbf{Database triggers}: source system records changes automatically
+      \item \textbf{Transaction log mining}: read the DB log to find changed rows
+      \item \textbf{Full diff}: compare snapshots (last resort, expensive)
+    \end{itemize}
+  \end{block}
+\end{frame}
+
+% ------------------------------------------------------------
+\begin{frame}
+  \frametitle{Extract: Light Transformations During Extraction}
+
+  Some minor transformations can already be applied during extraction.
+  These are technical in nature and do not touch business logic.
+
+  \begin{block}{Acceptable During Extraction}
+    \begin{itemize}
+      \item Character encoding conversion: ASCII to/from EBCDIC
+      \item Decompression
+      \item Case conversion (usually to upper case)
+      \item Date and time format conversion
+      \item Sorting
+    \end{itemize}
+  \end{block}
+
+  \begin{alertblock}{Warning}
+    Applying too much transformation during extraction can:
+    \begin{itemize}
+      \item \textbf{Obscure errors} --- bad data should be visible in staging
+      \item \textbf{Impact performance} of the operational source system
+    \end{itemize}
+    Keep extraction \textit{as light as possible}.
+  \end{alertblock}
+\end{frame}
+
+% -------- subsection: Data Quality --------
+
+\begin{frame}
+  \frametitle{Data Quality: The Biggest Challenge}
+
+  \begin{block}{Why Data Quality Matters}
+    \begin{itemize}
+      \item \textbf{40\,\%} of companies have suffered losses due to poor data quality
+        \hfill\small(The Data Warehousing Institute)
+      \item \textbf{15--20\,\%} of values in typical customer databases are incorrect
+        \hfill\small(Uni Trier)
+      \item \textbf{50\,\%} of CRM projects fail because of data quality problems
+        \hfill\small(Wayne Eckerson, TDWI)
+    \end{itemize}
+  \end{block}
+
+  \begin{block}{Common Data Quality Issues}
+    \begin{tabularx}{\linewidth}{@{}l X@{}}
+      \toprule
+      \textbf{Issue}       & \textbf{Description} \\
+      \midrule
+      Completeness         & Missing or NULL values \\
+      Consistency          & Same entity represented differently across sources \\
+      Accuracy             & Values that are factually wrong or outdated \\
+      Timeliness           & Data that arrives too late to be useful \\
+      Duplicates           & Same record represented multiple times \\
+      \bottomrule
+    \end{tabularx}
+  \end{block}
+\end{frame}
+
+% ------------------------------------------------------------
+\begin{frame}
+  \frametitle{Data Defect Classification}
+
+  \begin{block}{Three Classes of Defects}
+    \begin{tabularx}{\linewidth}{@{}l X X X@{}}
+      \toprule
+      & \textbf{Class 1}            & \textbf{Class 2}                  & \textbf{Class 3} \\
+      \midrule
+      Detection  & Automatic               & Automatic                         & Manual \\
+      Correction & Automatic               & Manual                            & Manual \\
+      \midrule
+      Syntactic  & Known format errors     & Detectable format incompatibilities & --- \\
+      Semantic   & Missing values (fill)   & Outliers / implausible values       & Undetected semantic errors in source \\
+      \bottomrule
+    \end{tabularx}
+  \end{block}
+
+  \begin{alertblock}{Class 3 Defects}
+    Class 3 defects (undetected semantic errors) \textbf{must be fixed at the source
+    system} --- they cannot be reliably corrected in the ETL pipeline.
+    This requires cooperation with the source system owners.
+  \end{alertblock}
+\end{frame}
+
+% -------- subsection: Data Wrangling / Transformation --------
+
+\begin{frame}
+  \frametitle{Data Wrangling: What is it?}
+
+  \begin{block}{Definition}
+    \textbf{Data Wrangling} (also called data munging) is the process of
+    transforming and mapping raw data into a format suitable for analysis.
+    In the DWH context, this is the heart of the \textbf{Transform} step in ETL.
+  \end{block}
+
+  \begin{block}{Typical Wrangling Activities}
+    \begin{itemize}
+      \item \textbf{Filtering}: Remove irrelevant or erroneous rows
+      \item \textbf{Standardisation}: Unify naming conventions and formats
+      \item \textbf{Harmonisation}: Align data from multiple sources into one consistent schema
+      \item \textbf{Enrichment}: Add derived or calculated attributes
+      \item \textbf{Aggregation}: Pre-compute summary values
+      \item \textbf{Deduplication}: Identify and remove duplicate records
+    \end{itemize}
+  \end{block}
+\end{frame}
+
+% ------------------------------------------------------------
+\begin{frame}
+  \frametitle{Data Standardisation: Why it Matters}
+
+  \begin{block}{The Problem}
+    The same company can appear in data under many different names:
+  \end{block}
+
+  \begin{examples}{Revenue Report Without Standardisation}
+    \begin{tabularx}{\linewidth}{@{}l r l@{}}
+      \toprule
+      \textbf{Company Name}         & \textbf{Revenue (\euro{})} & \textbf{Invoice \#} \\
+      \midrule
+      BMW                           & 15,687       & 123-65 \\
+      Bayrische Motorenwerke        & 47,657       & 875-5  \\
+      BMW                           & 134,982      & 123-410 \\
+      b.m.w.                        & 9,807        & 459-60 \\
+      Bayerische Motoren Werke      & 237,897      & 164-45 \\
+      \midrule
+      \texttt{WHERE Company = 'BMW'} & \textbf{150,669} & (only 2 rows!) \\
+      After standardisation         & \textbf{446,030} & (all 5 rows) \\
+      \bottomrule
+    \end{tabularx}
+  \end{examples}
+\end{frame}
+
+% ------------------------------------------------------------
+\begin{frame}
+  \frametitle{Filtering and Harmonisation}
+
+  \begin{block}{Filtering in the Staging Area}
+    After extraction, validation routines are run to detect and correct
+    defects automatically where possible.
+    Both syntactic and semantic defects can be found.
+  \end{block}
+
+  \begin{block}{Harmonisation}
+    The process of \textbf{business-level reconciliation} of filtered data.
+    After technical standardisation, values from different sources are
+    aligned to the same business meaning:
+    \begin{itemize}
+      \item ``M'' and ``male'' and ``männlich'' $\to$ \texttt{M}
+      \item ``DE'', ``Germany'', ``Deutschland'', ``DEU'' $\to$ \texttt{DE}
+      \item Date formats: \texttt{15/03/2024}, \texttt{2024-03-15},
+        \texttt{20240315} $\to$ ISO 8601: \texttt{2024-03-15}
+    \end{itemize}
+  \end{block}
+\end{frame}
+
+% ------------------------------------------------------------
+\begin{frame}
+  \frametitle{Deduplication: Matching Data Records}
+
+  \begin{block}{The Problem}
+    The same real-world entity appears multiple times in the data ---
+    with slight variations in spelling, format, or completeness.
+  \end{block}
+
+  \begin{block}{Duplicate Matching Steps}
+    \begin{enumerate}
+      \item Define \textbf{match criteria}: which fields to compare?
+        (name, address, date of birth, \ldots)
+      \item Generate a \textbf{match key (match code)} per record based on
+        the criteria
+      \item Compare records with identical or similar match codes
+      \item Assign a \textbf{confidence score} based on field weights
+      \item Records above the threshold are flagged as duplicates
+      \item Choose the \textbf{master record}; merge or delete duplicates
+    \end{enumerate}
+  \end{block}
+
+  \begin{alertblock}{Impact}
+    Duplicate customer records lead to: incorrect campaign targeting,
+    inflated customer counts, wasted marketing spend.
+  \end{alertblock}
+\end{frame}
+
+% -------- subsection: Load --------
+
+\begin{frame}
+  \frametitle{Load: Bringing Data into the DWH}
+
+  \begin{block}{What the Load Step Does}
+    After transformation, cleaned and enriched data is loaded into the
+    DWH target tables.
+  \end{block}
+
+  \begin{block}{Loading Dimension Tables}
+    \begin{itemize}
+      \item Look up existing dimension records by natural key
+      \item If found: apply SCD logic (Type 1 = update, Type 2 = insert new row)
+      \item If not found: insert new record, generate new surrogate key
+    \end{itemize}
+  \end{block}
+
+  \begin{block}{Loading Fact Tables}
+    \begin{itemize}
+      \item Resolve all dimension keys (look up surrogate keys)
+      \item Append new fact rows (facts are typically never updated)
+      \item Handle late-arriving data: facts that arrive after their
+        dimension records have been updated
+    \end{itemize}
+  \end{block}
+
+  \begin{block}{Loading OLAP Cubes}
+    \begin{itemize}
+      \item Full rebuild of the cube
+      \item Or incremental update (add new slices only)
+    \end{itemize}
+  \end{block}
+\end{frame}
+
+% -------- subsection: ETL vs ELT --------
+
+\begin{frame}
+  \frametitle{ETL vs.\ ELT}
+
+  \begin{columns}[T]
+    \column{0.48\textwidth}
+    \begin{block}{Traditional ETL}
+      Transform data \textbf{before} loading into the DWH.\\
+      Transformation runs in a separate ETL server or tool.\\
+      Only clean data enters the DWH.\\
+      Typical in on-premise environments.
+    \end{block}
+
+    \column{0.48\textwidth}
+    \begin{block}{Modern ELT (Extract, Load, Transform)}
+      Load raw data \textbf{first}, then transform it \textit{inside}
+      the DWH using its compute power.\\
+      Raw data is preserved for re-processing.\\
+      Enabled by powerful cloud DWH engines (Snowflake, BigQuery).
+    \end{block}
+  \end{columns}
+
+  \vspace{0.5em}
+  \begin{tabularx}{\linewidth}{@{}l X X@{}}
+    \toprule
+    & \textbf{ETL}                & \textbf{ELT} \\
+    \midrule
+    Transform where? & External tool         & Inside DWH engine \\
+    Data in DWH      & Clean only            & Raw + clean \\
+    Flexibility      & Lower                 & Higher \\
+    Typical context  & On-premise            & Cloud \\
+    Typical tools    & Informatica, SSIS     & dbt, Spark, BigQuery \\
+    \bottomrule
+  \end{tabularx}
+\end{frame}
+
+% -------- subsection: Data Quality Process --------
+
+\begin{frame}
+  \frametitle{Data Quality as a Continuous Process}
+
+  Data quality is \textbf{not a one-time fix} --- it requires an ongoing
+  improvement cycle.
+
+  % PICTURE PLACEHOLDER
+  \begin{alertblock}{Picture: Data Quality Cycle}
+    \textit{Add a circular diagram with three phases:
+    (1) Analysis (profile and measure quality),
+    (2) Model Building (define rules and correction logic),
+    (3) Automation (implement rules in ETL pipeline).
+    Use circular arrows to show the iterative loop.}
+  \end{alertblock}
+
+  \begin{block}{Strategies for Sustained Data Quality}
+    \begin{itemize}
+      \item Validate at load time; reject or quarantine bad records
+      \item Maintain an \textbf{error/quarantine table} for rejected rows
+      \item Implement \textbf{data quality dashboards} and metrics
+      \item Work with source system owners to fix issues \textit{at the source}
+      \item Document \textbf{data lineage}: where does each column come from?
+    \end{itemize}
+  \end{block}
+\end{frame}
+
+% -------- subsection: Metadata --------
+
+\begin{frame}
+  \frametitle{Process Modelling and the Role of Metadata}
+
+  \begin{block}{DWH Processes Must Be Managed}
+    The ETL pipeline consists of many interdependent processes.
+    Managing them requires:
+    \begin{itemize}
+      \item Definition of \textbf{execution order} and timing
+      \item Support for \textbf{parallel processing}
+      \item Handling of \textbf{dependencies} between jobs
+      \item Definition of \textbf{error handling} and alternative paths
+    \end{itemize}
+  \end{block}
+
+  \begin{block}{The Role of Metadata in ETL}
+    Metadata (especially technical metadata) is the control layer:
+    \begin{itemize}
+      \item Every process records its \textbf{input and output tables}
+      \item ETL jobs can be \textbf{driven by metadata} (rules, mappings stored centrally)
+      \item Impact analysis: ``if I change column X, which jobs are affected?''
+      \item Change management is much easier with fine-grained, documented processes
+    \end{itemize}
+  \end{block}
+\end{frame}
+
+% -------- subsection: Aggregations --------
+
+\begin{frame}
+  \frametitle{Aggregations}
+
+  \begin{block}{What is an Aggregation?}
+    An aggregation is the \textbf{summation or consolidation} of data along
+    dimension hierarchies.
+    For example: summing daily sales to monthly, then annual totals.
+  \end{block}
+
+  \begin{block}{Why Pre-Compute Aggregations?}
+    \begin{itemize}
+      \item Aggregating billions of rows at query time is \textbf{very slow}
+      \item Pre-computed aggregations can be served from much smaller tables
+      \item The tradeoff: \textbf{storage} for \textbf{speed}
+      \item The level of aggregation has a \textbf{huge impact} on data volume
+    \end{itemize}
+  \end{block}
+
+  \begin{examples}{Simple Aggregation Example}
+    \begin{tabularx}{\linewidth}{@{}l l r@{}}
+      \toprule
+      \textbf{Customer} & \textbf{Product}  & \textbf{Sales (units)} \\
+      \midrule
+      Meier             & Refrigerator       & 5 \\
+      Meier             & Microwave          & 7 \\
+      Müller            & Oven               & 6 \\
+      Müller            & Refrigerator       & 8 \\
+      \midrule
+      Meier (total)     &                    & \textbf{12} \\
+      Müller (total)    &                    & \textbf{14} \\
+      \bottomrule
+    \end{tabularx}
+  \end{examples}
+\end{frame}

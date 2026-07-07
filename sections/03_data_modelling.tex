@@ -1,0 +1,513 @@
+% ============================================================
+%  Section 3: Data Modelling for the DWH
+% ============================================================
+\section{Data Modelling}
+
+% -------- subsection: Logical Modelling Overview --------
+
+\begin{frame}
+  \frametitle{Why Data Modelling Matters}
+
+  Data modelling is the \textbf{first and most critical phase} in building a DWH.
+  It determines what data is stored, how it is structured, and how easily
+  users can analyse it.
+
+  \begin{block}{The Logical Data Model\ldots}
+    \begin{itemize}
+      \item Is the blueprint of the DWH
+      \item Is \textbf{requirements-driven}: what questions does the business need to answer?
+      \item Defines which data and in which logical structure is stored in the DWH
+      \item Strongly driven by user needs
+      \item Is \textbf{critically important for project success}
+    \end{itemize}
+  \end{block}
+
+  \begin{block}{Two Modelling Phases}
+    \begin{enumerate}
+      \item \textbf{Logical modelling}: What data and how is it structured?
+        (Subject model, dimensional model, ER model)
+      \item \textbf{Physical modelling}: How is it technically implemented?
+        (Tables, aggregations, partitioning, storage type)
+    \end{enumerate}
+  \end{block}
+\end{frame}
+
+% -------- subsection: Subject Modelling --------
+
+\begin{frame}
+  \frametitle{Step 1: Subject Modelling}
+
+  \begin{block}{What is a Subject?}
+    A subject is an \textbf{important business area or theme} in the enterprise
+    about which a lot of information is collected.
+    \begin{itemize}
+      \item \textbf{Persons}: Customer, Employee, Supplier
+      \item \textbf{Things}: Product, Account, Contract
+      \item \textbf{Processes}: Order, Payment, Delivery
+    \end{itemize}
+  \end{block}
+
+  \begin{block}{The Subject Model\ldots}
+    \begin{itemize}
+      \item Documents the most important subjects and their relationships
+      \item Covers the \textbf{whole enterprise} at a high level
+      \item Is easy for business users to understand
+      \item Is represented as a graphical diagram (5--15 subjects)
+    \end{itemize}
+  \end{block}
+
+  \begin{examples}{Tip}
+    In operational data models, subjects tend to appear as the \textbf{hub
+    of multiple relationships} --- many tables reference them.
+    This is a good way to identify them.
+  \end{examples}
+\end{frame}
+
+% ------------------------------------------------------------
+\begin{frame}
+  \frametitle{Subjects Vary by Industry}
+
+  \begin{block}{Examples by Sector}
+    \begin{tabularx}{\linewidth}{@{}l X@{}}
+      \toprule
+      \textbf{Sector}    & \textbf{Typical Subjects} \\
+      \midrule
+      Commercial firm    & Customer, Product, Organisational unit, Sales \\
+      Public sector      & Citizen, Department, Employee, Service \\
+      University         & Student, Professor, Course, Subject area \\
+      Bank               & Customer, Account, Advisor, Product, OU \\
+      Insurance          & Customer, Policy, Claim, Agent, Premium \\
+      \bottomrule
+    \end{tabularx}
+  \end{block}
+
+  \begin{alertblock}{Important}
+    Subjects must be identified \textbf{before} modelling begins.
+    They require analysis of the business requirements and existing data models.
+    Use interviews, workshops, and mind maps to elicit them.
+  \end{alertblock}
+\end{frame}
+
+% ------------------------------------------------------------
+\begin{frame}
+  \frametitle{Example Subject Model: Bank}
+
+  % PICTURE PLACEHOLDER
+  \begin{alertblock}{Picture: Bank Subject Model}
+    \textit{Add a subject model graph for a bank with nodes: Customer, Account,
+    Product, Advisor, Branch. Show edges (relationships) between them.
+    Label the edges (e.g. ``has'', ``belongs to'', ``advises'', ``sells'').
+    Keep it simple -- one diagram fitting a slide.}
+  \end{alertblock}
+
+  \begin{block}{Subject List Example (Bank)}
+    \begin{tabularx}{\linewidth}{@{}l X l@{}}
+      \toprule
+      \textbf{Subject} & \textbf{Description} & \textbf{Related to} \\
+      \midrule
+      Customer  & Person/org using bank services & Product, Account \\
+      Advisor   & Bank employee serving customers & Branch, Customer \\
+      Branch    & Organisational unit of the bank & Advisor, Customer \\
+      Account   & Used to manage payment transfers & Customer, Product \\
+      Product   & Services sold to customers & Customer, Account \\
+      \bottomrule
+    \end{tabularx}
+  \end{block}
+\end{frame}
+
+% -------- subsection: Dimensional Modelling --------
+
+\begin{frame}
+  \frametitle{Step 2: Dimensional Modelling}
+
+  \begin{block}{The Dimensional Data Model\ldots}
+    \begin{itemize}
+      \item Provides a \textbf{detailed logical view} of the data
+      \item Divides data into \textbf{Facts} and \textbf{Dimensions}
+      \item Is \textbf{requirements-oriented}: what analyses are needed?
+      \item Is represented like an Entity-Relationship diagram
+      \item The key difference from classical ER: the \textbf{degree of normalisation}
+        is deliberately lower (denormalisation for query performance)
+    \end{itemize}
+  \end{block}
+
+  \begin{block}{Core Concepts}
+    \begin{tabularx}{\linewidth}{@{}l X@{}}
+      \textbf{Facts}      & The measurable business metrics to be analysed \\
+      \textbf{Dimensions} & The perspectives from which facts are analysed \\
+      \textbf{Grain}      & The lowest level of detail stored (most important!) \\
+    \end{tabularx}
+  \end{block}
+\end{frame}
+
+% ------------------------------------------------------------
+\begin{frame}
+  \frametitle{Facts}
+
+  \begin{block}{Definition}
+    Facts contain the \textbf{business metrics (KPIs)} to be analysed.
+  \end{block}
+
+  \begin{block}{Sources and Types}
+    \begin{itemize}
+      \item Either taken directly from operational systems:
+        quantities, prices, measurements
+      \item Or derived from them: revenue, profit margin, averages
+      \item Stored at the \textbf{lowest level of detail} (finest grain)
+        in the DWH
+    \end{itemize}
+  \end{block}
+
+  \begin{block}{Additive Types of Facts}
+    \begin{tabularx}{\linewidth}{@{}l X l@{}}
+      \toprule
+      \textbf{Type}     & \textbf{Description}                             & \textbf{Example} \\
+      \midrule
+      Additive          & SUM over all dimensions                          & Revenue, orders \\
+      Semi-additive     & SUM over some dimensions only                    & Account balance \\
+      Non-additive      & Cannot be meaningfully summed                    & Ratios, prices \\
+      \bottomrule
+    \end{tabularx}
+  \end{block}
+\end{frame}
+
+% ------------------------------------------------------------
+\begin{frame}
+  \frametitle{Dimensions}
+
+  \begin{block}{Definition}
+    Dimensions are the \textbf{logical perspectives} under which facts
+    are analysed.
+  \end{block}
+
+  \begin{itemize}
+    \item Logical groupings of attributes: e.g.\ Year, Month, Day $\to$ \textbf{Time}
+    \item Can contain additional descriptive attributes (e.g.\ customer first name)
+    \item Each dimension gets its own table
+    \item Dimensions often correspond to the \textbf{subjects} from the subject model
+    \item Connected to the fact table via \textbf{dimension keys}
+  \end{itemize}
+
+  \begin{examples}{Typical Dimensions}
+    \textbf{Time} (Year/Quarter/Month/Day),
+    \textbf{Product} (Category/Group/Individual Product),
+    \textbf{Customer} (Segment/Region/Individual),
+    \textbf{Geography} (Continent/Country/Region/City),
+    \textbf{Organisation} (Company/Division/Department)
+  \end{examples}
+\end{frame}
+
+% ------------------------------------------------------------
+\begin{frame}
+  \frametitle{Dimension Hierarchies}
+
+  Dimensions are organised in \textbf{hierarchies} --- levels of detail from
+  coarse to fine. Hierarchies are the basis for drill-down and roll-up.
+
+  \begin{columns}[T]
+    \column{0.48\textwidth}
+    \begin{block}{Product Hierarchy}
+      \begin{itemize}
+        \item Total
+        \item Industry
+        \item Product Group
+        \item Product Family
+        \item Product (lowest level)
+      \end{itemize}
+    \end{block}
+
+    \column{0.48\textwidth}
+    \begin{block}{Time Dimension: Multiple Hierarchies}
+      \begin{itemize}
+        \item \textit{Hierarchy 1:} Year $\to$ Quarter $\to$ Month $\to$ Day
+        \item \textit{Hierarchy 2:} Year $\to$ 4-4-5 Month $\to$ Week $\to$ Day
+      \end{itemize}
+      One dimension can contain \textbf{multiple} hierarchies.
+    \end{block}
+  \end{columns}
+
+  % PICTURE PLACEHOLDER
+  \begin{alertblock}{Picture: Product Dimension Hierarchy}
+    \textit{Add a tree/pyramid diagram for the Product dimension:
+    Gesamt at top, then Branche, Produktgruppe, Produktfamilie, Produkt at bottom.
+    Arrows pointing downward. Label it ``Drill-Down'' direction.}
+  \end{alertblock}
+\end{frame}
+
+% ------------------------------------------------------------
+\begin{frame}
+  \frametitle{The Multidimensional Data Model}
+
+  The dimensional model conceptually organises data as a
+  \textbf{multidimensional space} (hypercube).
+
+  % PICTURE PLACEHOLDER
+  \begin{alertblock}{Picture: 3D Multidimensional Cube}
+    \textit{Add a 3D cube diagram with three axes:
+    Dimension 1 = Organisation (Branch/Region/Advisor),
+    Dimension 2 = Product Line (Group/Individual),
+    Dimension 3 = Time (Year/Month/Day).
+    Highlight one cell with a value, e.g. ``Org=Branch02, Product=03, Time=1999''.}
+  \end{alertblock}
+
+  \begin{block}{Key Concepts}
+    \begin{itemize}
+      \item Each \textbf{cell} in the cube holds an aggregated measure
+      \item \textbf{Sparse cubes}: many cells have no data (normal in practice)
+      \item \textbf{Dense cubes}: most cells contain values
+      \item Real cubes can have many more than 3 dimensions
+    \end{itemize}
+  \end{block}
+\end{frame}
+
+% -------- subsection: Star Schema --------
+
+\begin{frame}
+  \frametitle{The Star Schema}
+
+  \begin{block}{Structure}
+    \begin{itemize}
+      \item One central \textbf{fact table} connected to multiple
+        \textbf{dimension tables} via foreign keys
+      \item Dimension tables are \textbf{denormalised} (flat, wide tables)
+      \item Simple to understand and query
+      \item Optimised for read performance
+      \item Named for its star-like visual shape
+    \end{itemize}
+  \end{block}
+
+  \begin{examples}{Example: Wine Sales}
+    Fact table: \texttt{FACT\_SALES} with columns Product-Key,
+    Region-Key, Taste-Key, Time-Key, Revenue.\\
+    Dimension tables: \texttt{DIM\_PRODUCT} (Rosé/White/Sparkling),
+    \texttt{DIM\_REGION} (Brandenburg/Hessen/\ldots),
+    \texttt{DIM\_TASTE} (dry/semi-dry/mild),
+    \texttt{DIM\_TIME} (Jan/Feb/Mar/\ldots)
+  \end{examples}
+\end{frame}
+
+% ------------------------------------------------------------
+\begin{frame}
+  \frametitle{Star Schema: Diagram}
+
+  % PICTURE PLACEHOLDER
+  \begin{alertblock}{Picture: Star Schema Diagram (Wine Sales)}
+    \textit{Add the wine sales star schema diagram:
+    Central fact table FACT\_SALES with foreign keys to four dimension tables.
+    DIM\_PRODUCT on the left (Rotwein, Weißwein, Sekt),
+    DIM\_REGION on the right (Brandenburg, Hessen, Niedersachsen),
+    DIM\_GESCHMACK below-left (trocken, halbtrocken, mild),
+    DIM\_ZEITRAUM below-right (Januar, Februar, März).
+    Connect all four to the central fact table.}
+  \end{alertblock}
+
+  \begin{block}{Fact Table Columns}
+    \begin{itemize}
+      \item \textbf{Dimension keys} (FK): link to each dimension table
+      \item \textbf{Degenerate dimensions}: attributes with no dimension table
+        (e.g.\ invoice number)
+      \item \textbf{Measures}: the actual facts (revenue, quantity, \ldots)
+      \item \textbf{Derived values}: calculated metrics
+    \end{itemize}
+  \end{block}
+\end{frame}
+
+% -------- subsection: Snowflake Schema --------
+
+\begin{frame}
+  \frametitle{The Snowflake Schema}
+
+  \begin{block}{Concept}
+    The snowflake schema is a \textbf{normalised extension} of the star schema.
+    Large or redundant dimension tables are split into multiple related tables.
+  \end{block}
+
+  \begin{examples}{Example: Region Dimension}
+    In a star schema, one flat \texttt{DIM\_REGION} table contains
+    (City, PostalCode, FederalState, Country).
+
+    In a snowflake schema, this splits into:
+    \texttt{DIM\_REGION} $\to$ \texttt{DIM\_POSTAL\_AREA} $\to$ \texttt{DIM\_CITY}
+  \end{examples}
+
+  % PICTURE PLACEHOLDER
+  \begin{alertblock}{Picture: Snowflake Schema Diagram}
+    \textit{Add the snowflake extension of the wine sales star schema:
+    DIM\_REGION now has a FK to DIM\_POSTAL\_AREA, which has a FK to DIM\_CITY.
+    DIM\_ZEITRAUM splits into Month-ID and Week-ID sub-tables.
+    Show the ``snowflake'' branching effect.}
+  \end{alertblock}
+\end{frame}
+
+% ------------------------------------------------------------
+\begin{frame}
+  \frametitle{Star vs.\ Snowflake Schema}
+
+  \begin{tabularx}{\linewidth}{@{}l X X@{}}
+    \toprule
+    \textbf{Property}    & \textbf{Star Schema}        & \textbf{Snowflake Schema} \\
+    \midrule
+    Normalisation        & Denormalised                & Partially normalised \\
+    Query simplicity     & Simple (fewer joins)        & More complex (more joins) \\
+    Query performance    & Faster                      & Slightly slower \\
+    Storage redundancy   & Higher                      & Lower \\
+    Maintenance          & Easier                      & More complex \\
+    Typical use          & Smaller dimensions          & Very large dimensions \\
+    \bottomrule
+  \end{tabularx}
+
+  \vspace{0.5em}
+  \begin{block}{In practice\ldots}
+    The star schema is the \textbf{most common choice} for data marts.
+    The snowflake schema is used selectively to reduce storage for
+    specific very large dimension tables.
+    \textbf{Most real-world DWH schemas are hybrid.}
+  \end{block}
+\end{frame}
+
+% -------- subsection: Date Dimension --------
+
+\begin{frame}
+  \frametitle{The Date Dimension}
+
+  The time/date dimension is present in \textbf{almost every DWH}.
+  It is pre-populated for all dates in the analysis range (e.g.\ 2000--2040).
+
+  \begin{examples}{Typical Date Dimension Table}
+    \scriptsize
+    \begin{tabularx}{\linewidth}{@{}l l l l l l l l@{}}
+      \toprule
+      \textbf{Date}    & \textbf{Weekday} & \textbf{Month} & \textbf{Cal.Q} & \textbf{Fin.Q} & \textbf{Week} & \textbf{4-4-5} & \textbf{Holiday} \\
+      \midrule
+      25.12.1997 & Thu & 12 & 4 & 1 & 52 & 4 & Yes \\
+      26.12.1997 & Fri & 12 & 4 & 1 & 52 & 4 & Yes \\
+      31.12.1997 & Wed & 12 & 4 & 1 & 53 & 4 & No \\
+      01.01.1998 & Thu & 01 & 1 & 1 & 01 & 1 & Yes \\
+      \bottomrule
+    \end{tabularx}
+    \normalsize
+  \end{examples}
+
+  \begin{alertblock}{Important Note}
+    Time is \textbf{not} an isolated dimension. Every other dimension
+    can also change over time (available products, customer lists, sales territories).
+    This is why \textbf{Slowly Changing Dimensions} are crucial.
+  \end{alertblock}
+\end{frame}
+
+% -------- subsection: SCD --------
+
+\begin{frame}
+  \frametitle{Slowly Changing Dimensions (SCD)}
+
+  \begin{block}{The Problem}
+    Dimension data changes over time. A customer moves cities.
+    A product is re-categorised. A sales region is restructured.
+    How do we handle this in a non-volatile DWH?
+  \end{block}
+
+  \begin{block}{SCD Type 1 --- Overwrite}
+    Simply \textbf{update} the existing row. No history is retained.\\
+    \textit{Use when historical accuracy for this attribute does not matter.}\\
+    Example: Fixing a data entry error.
+  \end{block}
+
+  \begin{block}{SCD Type 2 --- Add a New Row (most common)}
+    Insert a \textbf{new row} for the new value. Old rows remain unchanged
+    with a validity period (start/end date or a \texttt{is\_current} flag).\\
+    \textit{Use when you need to track the history of changes.}\\
+    Example: Customer changes address.
+  \end{block}
+
+  \begin{block}{SCD Type 3 --- Add a New Column}
+    Add a column for the \textbf{previous value}.\\
+    \textit{Only supports one level of history.}
+  \end{block}
+\end{frame}
+
+% -------- subsection: Dimension Keys --------
+
+\begin{frame}
+  \frametitle{Dimension Keys: Natural vs.\ Surrogate Keys}
+
+  \begin{block}{Natural Key}
+    The business identifier from the source system
+    (e.g.\ customer number, product code, employee ID).
+  \end{block}
+
+  \begin{block}{Surrogate Key}
+    A \textbf{meaningless integer} generated by the DWH (e.g.\ 1, 2, 3, \ldots).
+    It is the primary key of the dimension table inside the DWH.
+  \end{block}
+
+  \begin{block}{Why Use Surrogate Keys?}
+    \begin{itemize}
+      \item Natural keys can change in source systems --- surrogate keys are stable
+      \item Essential for \textbf{SCD Type 2}: multiple rows for the same business entity
+        get different surrogate keys
+      \item Smaller (integer) = faster joins
+      \item Decouples the DWH from source system changes
+      \item Allows integration of data from \textbf{multiple source systems}
+        (different natural keys for the same entity)
+    \end{itemize}
+  \end{block}
+\end{frame}
+
+% -------- subsection: ER Modelling --------
+
+\begin{frame}
+  \frametitle{Entity-Relationship Modelling in the DWH Context}
+
+  \begin{block}{When ER is Used}
+    ER modelling (Peter Chen, 1976) is the traditional approach for
+    relational data modelling. In the DWH context, it is used:
+    \begin{itemize}
+      \item For modelling the \textbf{integration/staging layer} (3NF)
+      \item Favoured by the Inmon approach
+      \item Particularly popular with database and IT specialists
+    \end{itemize}
+  \end{block}
+
+  \begin{block}{Core ER Concepts}
+    \begin{tabularx}{\linewidth}{@{}l X@{}}
+      \textbf{Entity}      & A distinguishable object (Customer, Product) \\
+      \textbf{Attribute}   & A property of an entity (Name, Price) \\
+      \textbf{Relationship}& A connection between two entities \\
+      \textbf{Cardinality} & How many instances participate: 1:1, 1:n, n:m \\
+      \textbf{Optionality} & Whether participation is mandatory or optional \\
+    \end{tabularx}
+  \end{block}
+\end{frame}
+
+% ------------------------------------------------------------
+\begin{frame}
+  \frametitle{Normalisation in the DWH}
+
+  \begin{block}{Why Normalise?}
+    \begin{itemize}
+      \item Avoids redundancy and inconsistency
+      \item Prevents update/insert/delete anomalies
+      \item Results in a clearer, more maintainable data model
+      \item Concept introduced by E.F. Codd (1972)
+    \end{itemize}
+  \end{block}
+
+  \begin{block}{Normal Forms Recap}
+    \begin{tabularx}{\linewidth}{@{}l X@{}}
+      \toprule
+      \textbf{Form} & \textbf{Rule} \\
+      \midrule
+      1NF & All attribute values are atomic (no repeating groups) \\
+      2NF & 1NF + every non-key attribute fully depends on the whole PK \\
+      3NF & 2NF + no non-key attribute depends on another non-key attribute \\
+      BCNF & Stronger form of 3NF \\
+      \bottomrule
+    \end{tabularx}
+  \end{block}
+
+  \begin{alertblock}{DWH vs.\ OLTP}
+    The core DWH/staging layer uses \textbf{3NF} for clean data storage.
+    Data marts use \textbf{deliberately denormalised} star/snowflake schemas
+    for analytical query performance.
+  \end{alertblock}
+\end{frame}

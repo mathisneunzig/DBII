@@ -1,278 +1,320 @@
 % ============================================================
-%  Section 1: Data Warehouse
+%  Section 1: Business Intelligence & Data Warehouse
 % ============================================================
-\section{Data Warehouse}
+\section{Business Intelligence \& Data Warehouse}
 
-% ------------------------------------------------------------
+% -------- subsection: What is BI? --------
+
 \begin{frame}
-  \frametitle{Motivation: Why Not Just Use a Regular Database?}
+  \frametitle{What is Business Intelligence?}
 
-  \begin{block}{Operational Databases (OLTP)}
-    \begin{itemize}
-      \item Designed for \textbf{day-to-day transactions}: inserts, updates, deletes
-      \item Many concurrent users, short queries, row-oriented storage
-      \item Example: booking a flight, processing a payment, updating stock
-    \end{itemize}
+  \begin{block}{Definition}
+    \textbf{Business Intelligence (BI)} refers to all tools and applications with
+    a \textbf{decision-supporting character} that lead to better insight into
+    one's own business and a deeper understanding of the mechanisms in relevant
+    chains of causality.
+    \hfill\small(Weber et al., 1999)
   \end{block}
 
-  \begin{alertblock}{The Problem for Analytics}
-    \begin{itemize}
-      \item Analytical queries scan \textbf{millions of rows} -- too slow on OLTP systems
-      \item Data is scattered across \textbf{multiple systems} (ERP, CRM, \ldots)
-      \item Historical data is often not kept -- or not in a queryable form
-      \item Running reports on the live DB risks \textbf{performance degradation}
-    \end{itemize}
-  \end{alertblock}
-
+  \vspace{0.4em}
+  \begin{block}{In plain terms}
+    BI is the \textbf{intelligence service of the company}. It is the process
+    that generates knowledge from fragmented, heterogeneous corporate, market,
+    and competitive data about one's own and others' positions, potentials,
+    and perspectives.
+  \end{block}
 \end{frame}
 
 % ------------------------------------------------------------
 \begin{frame}
-  \frametitle{What Is a Data Warehouse?}
+  \frametitle{Two Ways to Think About BI}
 
-  \begin{block}{Definition (W.H. Inmon, 1992)}
-    A Data Warehouse is a \textbf{subject-oriented}, \textbf{integrated},
-    \textbf{time-variant}, and \textbf{non-volatile} collection of data in support
-    of management's decision-making process.
-  \end{block}
-
-  \vspace{0.5em}
-  \begin{itemize}
-    \item Central repository that consolidates data from \textbf{multiple sources}
-    \item Optimised for \textbf{reading} and complex analytical queries
-    \item Stores data \textbf{historically} -- typically years of history
-    \item Foundation for Business Intelligence and reporting tools
-  \end{itemize}
-
-\end{frame}
-
-% ------------------------------------------------------------
-\begin{frame}
-  \frametitle{The Four Characteristics of a DWH (Inmon)}
-
-  \begin{block}{Subject-Oriented}
-    Organised around key business subjects (Sales, Customers, Products),
-    not around applications or processes.
-  \end{block}
-
-  \begin{block}{Integrated}
-    Data from heterogeneous sources is cleaned, transformed, and stored
-    in a \textbf{consistent format} (unified naming, units, encoding).
-  \end{block}
-
-  \begin{block}{Time-Variant}
-    Every record is associated with a \textbf{time stamp or period}.
-    Data is never simply overwritten -- changes are captured over time.
-  \end{block}
-
-  \begin{block}{Non-Volatile}
-    Data is \textbf{loaded} into the DWH and \textbf{read}, but never
-    updated or deleted in the operational sense. It is stable and persistent.
-  \end{block}
-
-\end{frame}
-
-% ------------------------------------------------------------
-\begin{frame}
-  \frametitle{OLTP vs.\ OLAP at a Glance}
-
-  \begin{tabularx}{\linewidth}{@{}l X X@{}}
-    \toprule
-    \textbf{Property}   & \textbf{OLTP}                     & \textbf{OLAP / DWH} \\
-    \midrule
-    Purpose             & Transactions / Operations         & Analysis / Reporting \\
-    Users               & Clerks, applications              & Analysts, managers \\
-    Query type          & Simple, predefined                & Complex, ad-hoc \\
-    Data scope          & Current state                     & Historical (years) \\
-    Data volume         & GB range                          & TB -- PB range \\
-    Operations          & INSERT / UPDATE / DELETE          & Mainly SELECT \\
-    Schema              & Highly normalised (3NF)           & Denormalised (star/snowflake) \\
-    Response time       & Milliseconds                      & Seconds -- minutes \\
-    Concurrency         & Thousands of users                & Dozens of analysts \\
-    \bottomrule
-  \end{tabularx}
-
-\end{frame}
-
-% ------------------------------------------------------------
-\begin{frame}
-  \frametitle{OLTP: A Closer Look}
-
-  \begin{block}{Online Transaction Processing (OLTP)}
+  \begin{block}{Wide BI Understanding (Technology \& Application)}
     \begin{itemize}
-      \item Manages the \textbf{operational data} of a business in real time
-      \item ACID properties are critical: Atomicity, Consistency, Isolation, Durability
-      \item High write throughput; short, targeted transactions
+      \item ETL, Data Warehouse, OLAP, Reporting
+      \item Standard \& ad-hoc reporting, EIS/DSS/MIS systems
+      \item Data Mining, Text Mining
+      \item Planning, Consolidation, Balanced Scorecard
+      \item Analytical CRM
     \end{itemize}
   \end{block}
 
-  \begin{examples}{Typical OLTP Systems}
+  \begin{block}{Narrow BI Understanding (Analytics Focus)}
     \begin{itemize}
-      \item Enterprise Resource Planning (ERP): SAP, Oracle EBS
-      \item Customer Relationship Management (CRM): Salesforce
-      \item Point-of-Sale systems, banking core systems
-    \end{itemize}
-  \end{examples}
-
-  \begin{alertblock}{Key Takeaway}
-    OLTP systems are the \textbf{source} of data for the DWH.
-    They are \textbf{not} designed for analytical workloads.
-  \end{alertblock}
-
-\end{frame}
-
-% ------------------------------------------------------------
-\begin{frame}
-  \frametitle{Key Concepts: Dimensions and Facts}
-
-  \begin{block}{Fact Table}
-    \begin{itemize}
-      \item Contains \textbf{measurable, quantitative data} (metrics/facts)
-      \item Examples: revenue, quantity sold, number of page views
-      \item Typically very large (millions to billions of rows)
-    \end{itemize}
-  \end{block}
-
-  \begin{block}{Dimension Tables}
-    \begin{itemize}
-      \item Contain \textbf{descriptive attributes} used to filter and group facts
-      \item Examples: Customer, Product, Date, Region, Store
-      \item Relatively small; provide context for measurements
-    \end{itemize}
-  \end{block}
-
-  \begin{examples}{Example: Online Shop}
-    A sale is the \textit{fact}. The \textit{dimensions} are:
-    \textbf{What} was sold (Product), \textbf{Who} bought it (Customer),
-    \textbf{When} (Date), \textbf{Where} (Region).
-  \end{examples}
-
-\end{frame}
-
-% ------------------------------------------------------------
-\begin{frame}
-  \frametitle{The Star Schema}
-
-  \begin{block}{Structure}
-    \begin{itemize}
-      \item One central \textbf{fact table} linked to multiple \textbf{dimension tables}
-      \item Dimension tables are \textbf{denormalised} (flat, wide tables)
-      \item Simple joins -- optimised for query performance
+      \item Focused on KPI systems and decision support
+      \item Management reporting and scorecards
+      \item Analytical applications for specific business domains
     \end{itemize}
   \end{block}
 
   % PICTURE PLACEHOLDER
-  \begin{alertblock}{Picture: Star Schema Diagram}
-    \textit{Add a diagram here showing a central FACT\_SALES table connected via
-    foreign keys to DIM\_DATE, DIM\_CUSTOMER, DIM\_PRODUCT, and DIM\_REGION.
-    Highlight the star shape formed by the relationships.}
+  \begin{alertblock}{Picture: BI Facets Diagram}
+    \textit{Add the ``Facets of Business Intelligence'' diagram showing the
+    phases (data provision, analytics) on vertical axis and the spectrum from
+    narrow to wide BI on horizontal axis. Include ETL, DWH, Reporting, OLAP,
+    Data Mining, BSC positions.}
   \end{alertblock}
+\end{frame}
 
+% -------- subsection: Why BI? --------
+
+\begin{frame}
+  \frametitle{Why Do Companies Need BI?}
+
+  \begin{columns}[T]
+    \column{0.5\textwidth}
+    \begin{block}{Common Complaints}
+      \begin{itemize}
+        \item Reports arrive \textbf{too late}
+        \item Numbers are \textbf{inconsistent} across departments
+        \item Data is \textbf{inaccurate} or incomplete
+        \item Analysis is done manually in Excel --- error-prone and slow
+        \item Every department has its own \textit{version of the truth}
+      \end{itemize}
+    \end{block}
+
+    \column{0.5\textwidth}
+    \begin{block}{The Finance Reporting Problem}
+      Without a DWH, a controller spends up to \textbf{48\,\%} of their time
+      on data collection and validation --- instead of on actual analysis.
+      \hfill\small(Hackett Group Study)
+    \end{block}
+
+    \begin{alertblock}{Goal of BI}
+      Fast, consistent, fact-based information for everyone who needs to
+      make decisions.
+    \end{alertblock}
+  \end{columns}
 \end{frame}
 
 % ------------------------------------------------------------
 \begin{frame}
-  \frametitle{The Snowflake Schema}
+  \frametitle{Information Supply Chain}
 
-  \begin{block}{Structure}
+  Just as goods flow through a supply chain, \textbf{information flows} through
+  the organisation.
+
+  % PICTURE PLACEHOLDER
+  \begin{alertblock}{Picture: Information Supply Chain}
+    \textit{Add the Information Supply Chain diagram:
+    Data $\to$ Analysis $\to$ Knowledge $\to$ Action, with ``Operative Business
+    Processes'' underneath as the source. Show the cycle.}
+  \end{alertblock}
+
+  \begin{block}{Roles in the Information Supply Chain}
+    \begin{tabularx}{\linewidth}{@{}l X@{}}
+      \toprule
+      \textbf{Role}          & \textbf{Responsibility} \\
+      \midrule
+      Business User          & Consumes business information \\
+      Reporter               & Creates standard reports \\
+      Guide                  & Provides detailed information \\
+      Miner / Analyst        & Data analysis and discovery \\
+      Administrator          & Infrastructure and application management \\
+      \bottomrule
+    \end{tabularx}
+  \end{block}
+\end{frame}
+
+% -------- subsection: OLTP brief note --------
+
+\begin{frame}
+  \frametitle{Where Does the Data Come From? Operational Systems (OLTP)}
+
+  \begin{block}{Online Transaction Processing (OLTP)}
+    The \textbf{source} of data for the DWH. OLTP systems run the day-to-day
+    business: orders, payments, inventory, HR.
+    They are optimised for \textbf{fast writes and concurrent users}, not for analytics.
+  \end{block}
+
+  \begin{tabularx}{\linewidth}{@{}l X X@{}}
+    \toprule
+    \textbf{Property}  & \textbf{OLTP (Source)}            & \textbf{DWH / OLAP (Target)} \\
+    \midrule
+    Purpose            & Run the business                  & Analyse the business \\
+    Operations         & INSERT/UPDATE/DELETE              & Mainly SELECT \\
+    Data               & Current, single record            & Historical, aggregated \\
+    Volume             & MB -- GB                          & GB -- TB \\
+    Users              & Clerks, ERP apps                  & Analysts, managers \\
+    Response time      & Milliseconds                      & Seconds -- minutes \\
+    Examples           & SAP, Salesforce, POS              & DWH, OLAP cubes, BI tools \\
+    \bottomrule
+  \end{tabularx}
+\end{frame}
+
+% -------- subsection: DWH Definition --------
+
+\begin{frame}
+  \frametitle{The Data Warehouse: Definition}
+
+  \begin{block}{Bill Inmon's Definition (1992)}
+    A Data Warehouse is a \textbf{subject-oriented}, \textbf{integrated},
+    \textbf{time-variant}, and \textbf{non-volatile} collection of data
+    in support of management's decision-making process.
+  \end{block}
+
+  \vspace{0.5em}
+  \begin{block}{In practice, a DWH is\ldots}
     \begin{itemize}
-      \item Extension of the star schema: dimension tables are \textbf{normalised}
-      \item Dimension attributes split into sub-dimension tables
-      \item Reduces data redundancy at the cost of more joins
+      \item A central \textbf{data pool} that forms the basis of information
+        supply in the enterprise
+      \item Sourced from operational systems (ERP like SAP) and external
+        data (market data, competitor information)
+      \item The \textbf{foundation} from which reports, analyses, and dashboards
+        are built
+    \end{itemize}
+  \end{block}
+\end{frame}
+
+% ------------------------------------------------------------
+\begin{frame}
+  \frametitle{The Four Characteristics of a DWH}
+
+  \begin{block}{\textbf{1. Subject-Oriented}}
+    Data is organised around key business subjects --- Customer, Product,
+    Sales, Service --- not around applications or processes.
+    Operational systems are process-oriented; the DWH is subject-oriented.
+  \end{block}
+
+  \begin{block}{\textbf{2. Integrated}}
+    Data from heterogeneous sources is cleaned, transformed, and stored
+    in a \textbf{consistent, unified format}.
+    Names, units, and encodings are harmonised across all sources.
+  \end{block}
+
+  % PICTURE PLACEHOLDER
+  \begin{alertblock}{Picture: Subject-Oriented vs.\ Operational}
+    \textit{Add a diagram showing: Operational apps (Sales, Finance,
+    Marketing, Hotline, Training) on the left pointing into the DWH
+    on the right, which is organised by subjects: Customer, Service, Product.}
+  \end{alertblock}
+\end{frame}
+
+% ------------------------------------------------------------
+\begin{frame}
+  \frametitle{The Four Characteristics of a DWH (cont.)}
+
+  \begin{block}{\textbf{3. Time-Variant}}
+    Every data record is associated with a \textbf{time stamp or validity period}.
+    The DWH stores \textbf{multiple snapshots} of data over time --- unlike
+    operational systems, which typically reflect only the current state.
+    Years or even decades of history are retained.
+  \end{block}
+
+  \begin{block}{\textbf{4. Non-Volatile}}
+    Data is \textbf{loaded} into the DWH and then \textbf{only read}.
+    There are no updates or deletes in the transactional sense.
+    The data is stable and persistent within a time unit.
+    Loading happens in \textbf{defined intervals} (daily, weekly, \ldots).
+  \end{block}
+
+  \begin{examples}{Summary}
+    The DWH stores \textit{detailed, filtered, subject-related data},
+    derived aggregates and reports, metadata, historical data (multiple years),
+    and pre-aggregated data for fast querying.
+  \end{examples}
+\end{frame}
+
+% -------- subsection: DWH Application Areas --------
+
+\begin{frame}
+  \frametitle{Application Areas of the Data Warehouse}
+
+  The most common use cases are in the business / management area.
+
+  \begin{block}{Main Areas}
+    \begin{itemize}
+      \item \textbf{Controlling:} Data basis for financial reporting, KPIs,
+        budget vs.\ actuals, consolidation
+      \item \textbf{Customer Relationship Management (CRM):}
+        Customer segmentation, direct marketing, churn prediction,
+        customer profitability analysis
+      \item \textbf{Knowledge Management:}
+        Combining structured data (DWH) with unstructured data
+        (documents, email, images) via document management and intranets
+      \item \textbf{Management Concepts:}
+        Balanced Scorecard, Business Performance Management,
+        Total Quality Management support
+    \end{itemize}
+  \end{block}
+\end{frame}
+
+% ------------------------------------------------------------
+\begin{frame}
+  \frametitle{Use Case: Controlling}
+
+  \begin{block}{Typical Pain Points in Controlling without a DWH}
+    \begin{itemize}
+      \item Heterogeneous data sources: ERP, SAP, Excel, local databases
+      \item Validity of financial figures is questionable
+      \item Manual consolidation of data from many systems
+      \item High time expenditure for report preparation
+      \item Up to \textbf{48\,\%} of controller time goes to data gathering,
+        not analysis \hfill\small(Hackett Group)
     \end{itemize}
   \end{block}
 
-  \begin{block}{Star vs.\ Snowflake}
-    \begin{tabularx}{\linewidth}{@{}X X X@{}}
-      \toprule
-      & \textbf{Star} & \textbf{Snowflake} \\
-      \midrule
-      Normalisation  & Denormalised     & Partially normalised \\
-      Query speed    & Faster           & Slightly slower \\
-      Storage        & More redundancy  & Less redundancy \\
-      Complexity     & Simple           & More complex \\
-      \bottomrule
-    \end{tabularx}
-  \end{block}
-
+  \begin{alertblock}{Goal of Controlling in BI}
+    The DWH automates data consolidation and provides a \textbf{single
+    source of truth} so controllers can focus on actual analysis and
+    decision support.
+  \end{alertblock}
 \end{frame}
 
 % ------------------------------------------------------------
 \begin{frame}
-  \frametitle{The Date Dimension}
+  \frametitle{Use Case: Customer Relationship Management (CRM)}
 
-  The \textbf{date/time dimension} is present in virtually every DWH.
+  \begin{block}{The CRM Data Challenge}
+    Customer data is scattered across many systems:
+    \begin{itemize}
+      \item Transactional data in operational applications (orders, accounts)
+      \item Offers in Word documents
+      \item Revenue / product statistics in the DWH
+      \item Contact notes as emails and private files
+      \item Customer self-presentation on the web
+    \end{itemize}
+  \end{block}
 
-  \begin{examples}{Typical Attributes of DIM\_DATE}
-    \begin{tabularx}{\linewidth}{@{}l X@{}}
-      \toprule
-      \textbf{Column}      & \textbf{Example value} \\
-      \midrule
-      date\_key            & 20240315 \\
-      full\_date           & 2024-03-15 \\
-      day\_of\_week        & Friday \\
-      week\_of\_year       & 11 \\
-      month\_name          & March \\
-      quarter              & Q1 \\
-      year                 & 2024 \\
-      is\_holiday          & false \\
-      fiscal\_year         & FY2024 \\
-      \bottomrule
-    \end{tabularx}
-  \end{examples}
-
-  Pre-populated for all dates in the analysis range (e.g.\ 2000--2030).
-
+  \begin{block}{What BI enables in CRM}
+    \begin{itemize}
+      \item Customer segmentation and profiling
+      \item Direct marketing campaign management
+      \item Shopping basket / cross-sell analysis
+      \item Customer profitability and credit scoring
+      \item Churn (defection) prediction
+      \item Service quality and response analysis
+    \end{itemize}
+  \end{block}
 \end{frame}
 
-% ------------------------------------------------------------
+% -------- subsection: ROI --------
+
 \begin{frame}
-  \frametitle{Slowly Changing Dimensions (SCD)}
+  \frametitle{ROI and Cost Considerations}
 
-  \begin{block}{The Problem}
-    Dimension data \textbf{changes over time} (e.g.\ a customer moves cities).
-    How do we handle this in a non-volatile DWH?
+  \begin{block}{Return on Investment (ROI)}
+    \begin{itemize}
+      \item A measure of the profitability of invested capital
+      \item Only quantifiable aspects are considered
+      \item DWH projects often have a difficult-to-quantify benefit side
+      \item Expected ROI materialises \textbf{over time} --- not immediately
+    \end{itemize}
   \end{block}
 
-  \begin{block}{SCD Type 1 -- Overwrite}
-    Simply update the old value. No history is kept.\\
-    \textit{Use when history does not matter.}
-  \end{block}
-
-  \begin{block}{SCD Type 2 -- Add a New Row}
-    Insert a new row with the new value and a validity date range.\\
-    Old rows are kept with their original values.\\
-    \textit{Most common approach.}
-  \end{block}
-
-  \begin{block}{SCD Type 3 -- Add a New Column}
-    Add a column for ``previous value''.\\
-    \textit{Only works for one level of history.}
-  \end{block}
-
-\end{frame}
-
-% ------------------------------------------------------------
-\begin{frame}
-  \frametitle{Data Marts}
-
-  \begin{block}{Definition}
-    A \textbf{data mart} is a subset of the Data Warehouse focused on a
-    \textbf{specific business domain} or department.
-  \end{block}
-
-  \begin{itemize}
-    \item Examples: Sales Mart, Finance Mart, HR Mart
-    \item Contains only the data relevant to that domain
-    \item Faster queries due to smaller scope
-    \item Can be sourced from the central DWH (\textit{dependent data mart})
-      or built independently (\textit{independent data mart})
-  \end{itemize}
-
-  \begin{alertblock}{Independent Data Marts: A Warning}
-    Multiple independent data marts often lead to \textbf{data silos}:
-    inconsistent definitions, duplicated data, conflicting numbers.
-    This is sometimes called a \textit{``data mart sprawl''}.
+  % PICTURE PLACEHOLDER
+  \begin{alertblock}{Picture: ROI Curve over Time}
+    \textit{Add a cost/benefit curve diagram: X-axis = time, Y-axis = cost/benefit.
+    Show the initial investment dip, the break-even point, and the rising
+    return-on-investment as the DWH matures.}
   \end{alertblock}
 
+  \begin{block}{Typical Cost Categories}
+    \begin{itemize}
+      \item \textbf{Up-front:} Planning, modelling, design
+      \item \textbf{One-time:} Hardware, software, data cleansing
+      \item \textbf{Ongoing:} Data maintenance, data quality, DWH management,
+        training, support
+    \end{itemize}
+  \end{block}
 \end{frame}

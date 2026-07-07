@@ -1,0 +1,601 @@
+% ============================================================
+%  Section 5: OLAP & Business Intelligence Tools
+% ============================================================
+\section{OLAP \& Business Intelligence}
+
+% -------- subsection: OLAP Definition --------
+
+\begin{frame}
+  \frametitle{What is OLAP?}
+
+  \begin{block}{Online Analytical Processing (OLAP)}
+    OLAP is a technology (hardware and software) for:
+    \begin{itemize}
+      \item \textbf{Simple and fast} data analysis
+      \item From \textbf{arbitrary perspectives} and at different levels of detail
+      \item Without having to define perspectives and levels in advance
+    \end{itemize}
+    $\Rightarrow$ \textbf{Dynamic analysis of multidimensional data!}
+    \hfill\small(based on Codd's 12 OLAP rules, 1993)
+  \end{block}
+
+  \begin{block}{The Foundation of OLAP}
+    The basis of OLAP is always a \textbf{dimensional data model} ---
+    a star or snowflake schema (or a multidimensional database structure
+    built from it).
+  \end{block}
+
+  \begin{block}{Typical OLAP Questions}
+    \begin{itemize}
+      \item \textit{What were total sales per region per quarter in 2024?}
+      \item \textit{Which product category grew the fastest over the last 3 years?}
+      \item \textit{Compare revenue in Germany vs.\ France for Q2 this year.}
+    \end{itemize}
+  \end{block}
+\end{frame}
+
+% ------------------------------------------------------------
+\begin{frame}
+  \frametitle{Codd's 12 OLAP Rules}
+
+  Edgar F.\ Codd (inventor of the relational model) defined 12 rules
+  for a true OLAP system in 1993:
+
+  \begin{columns}[T]
+    \column{0.48\textwidth}
+    \begin{enumerate}
+      \item Multidimensional view of data
+      \item Transparent data access
+      \item Unrestricted data availability
+      \item Consistent performance
+      \item Client/server architecture
+      \item Support for default dimensions (e.g.\ Time)
+    \end{enumerate}
+
+    \column{0.48\textwidth}
+    \begin{enumerate}
+      \setcounter{enumi}{6}
+      \item Dynamic sparsity handling
+      \item Multi-user support
+      \item Unrestricted operations across all dimensions
+      \item Intuitive data manipulation
+      \item Flexible reporting
+      \item Unlimited dimensions and aggregation levels
+    \end{enumerate}
+  \end{columns}
+\end{frame}
+
+% -------- subsection: OLAP Cube --------
+
+\begin{frame}
+  \frametitle{The OLAP Cube}
+
+  \begin{block}{What is an OLAP Cube?}
+    An OLAP cube is a \textbf{specialised storage format} with the following properties:
+    \begin{itemize}
+      \item Matrix-like format optimised for multidimensional access
+      \item Enables rapid extraction of pre-summarised data at multiple levels
+      \item Organises data in \textbf{hierarchies}
+      \item Structures data according to \textbf{dimensions and measures}
+    \end{itemize}
+  \end{block}
+
+  % PICTURE PLACEHOLDER
+  \begin{alertblock}{Picture: 3D OLAP Cube with Axes}
+    \textit{Add a 3D cube diagram with three labelled axes:
+    Axis 1 = Geography (Country/Region/City),
+    Axis 2 = Product Line (Category/Group/Product),
+    Axis 3 = Time (Year/Quarter/Month).
+    Highlight one cell and label it with an example value:
+    ``Geography=Germany, Product=Electronics, Time=2024 Q1: Revenue = \euro{}1.2M''.}
+  \end{alertblock}
+\end{frame}
+
+% ------------------------------------------------------------
+\begin{frame}
+  \frametitle{OLAP Cube: From Table to Cube}
+
+  The same data can be represented as a \textbf{relational table} or
+  as a \textbf{multidimensional cube} --- they contain the same information.
+
+  % PICTURE PLACEHOLDER
+  \begin{alertblock}{Picture: Cube-Table Duality}
+    \textit{Add the ``Dualismus Würfel-Tabelle'' diagram:
+    Left side: a 3D cube with axes Product, Time, Geography.
+    Right side: a flat relational table with columns Article, Branch, Date, Sales.
+    Show that the cells in the cube correspond to rows in the table.
+    Example rows: Radio/Heidelberg/3.1.2003/7, Radio/Mannheim/3.1.2003/4.}
+  \end{alertblock}
+
+  \begin{block}{Tabular Representation}
+    OLAP results can be displayed as:
+    \begin{itemize}
+      \item Simple 2D cross-tables (Rows = Products, Columns = Regions)
+      \item Nested tables (multiple dimensions on each axis)
+    \end{itemize}
+  \end{block}
+\end{frame}
+
+% -------- subsection: OLAP Terminology --------
+
+\begin{frame}
+  \frametitle{OLAP Terminology}
+
+  \begin{tabularx}{\linewidth}{@{}l X@{}}
+    \toprule
+    \textbf{Term}       & \textbf{Meaning} \\
+    \midrule
+    Dimension Name      & The label of a dimension (e.g.\ ``Time'') \\
+    Level               & A level of detail within a dimension (e.g.\ Year, Quarter, Month) \\
+    Hierarchy           & The arrangement of levels within a dimension \\
+    Member              & A single category value within a level (e.g.\ ``Q1 2024'') \\
+    Measure             & The numeric value being analysed (e.g.\ Revenue, Quantity) \\
+    Crossing            & A specific combination of dimension levels (defines a cell) \\
+    N-Way Crossing      & The combination of all lowest levels --- the most granular data \\
+    Sparsity            & The proportion of cells in the cube that have no value \\
+    Drill-Through       & Access to the underlying transaction-level detail data \\
+    \bottomrule
+  \end{tabularx}
+\end{frame}
+
+% ------------------------------------------------------------
+\begin{frame}
+  \frametitle{OLAP Terminology: The Time Dimension}
+
+  % PICTURE PLACEHOLDER
+  \begin{alertblock}{Picture: Time Dimension with Levels and Hierarchies}
+    \textit{Add a dimension tree for the Time dimension:
+    Top: Dimension name ``YQ Zeit''.
+    Below: two hierarchies side by side.
+    Hierarchy 1 (YQ): 2003/2004/2005 $\to$ Q3/Q4/Q1/Q2 (Quarters).
+    Hierarchy 2 (YM): 2003/2004/2005 $\to$ Jan/Feb/Mar/Apr/May/Jun/Jul/Aug...
+    Label: ``Member'' for individual values (e.g.\ Q3, Jan),
+    ``Level'' for the row type, ``Hierarchy'' for the overall branch.}
+  \end{alertblock}
+
+  \begin{block}{Key Insight}
+    A single dimension can contain \textbf{multiple hierarchies}.
+    Example for Time:
+    \begin{itemize}
+      \item Hierarchy 1 (Calendar): Year $\to$ Quarter $\to$ Month $\to$ Day
+      \item Hierarchy 2 (Fiscal): Fiscal Year $\to$ 4-4-5 Month $\to$ Week $\to$ Day
+    \end{itemize}
+  \end{block}
+\end{frame}
+
+% -------- subsection: OLAP Operations --------
+
+\begin{frame}
+  \frametitle{OLAP Operation: Roll-Up and Drill-Down}
+
+  \begin{columns}[T]
+    \column{0.48\textwidth}
+    \begin{block}{Roll-Up (Aggregation)}
+      Move \textbf{up} in the dimension hierarchy.\\
+      Less detail, more aggregation.\\
+      Example:\\
+      Day $\to$ Month $\to$ Quarter $\to$ Year
+    \end{block}
+
+    \column{0.48\textwidth}
+    \begin{block}{Drill-Down (Disaggregation)}
+      Move \textbf{down} in the dimension hierarchy.\\
+      More detail, less aggregation.\\
+      Example:\\
+      Year $\to$ Quarter $\to$ Month $\to$ Day
+    \end{block}
+  \end{columns}
+
+  \vspace{0.5em}
+  % PICTURE PLACEHOLDER
+  \begin{alertblock}{Picture: Roll-Up / Drill-Down on Product Hierarchy}
+    \textit{Add a vertical arrow diagram on the Product hierarchy:
+    (Top) Total $\to$ Industry $\to$ Product Group $\to$ Product Family $\to$ (Bottom) Product.
+    Left-side arrow pointing up: ``Roll-Up''.
+    Right-side arrow pointing down: ``Drill-Down''.}
+  \end{alertblock}
+\end{frame}
+
+% ------------------------------------------------------------
+\begin{frame}
+  \frametitle{OLAP Operations: Slice, Dice, and Pivot}
+
+  \begin{block}{Slice --- Fix One Dimension}
+    Select a \textbf{single value} on one dimension, reducing the cube by one axis.\\
+    \textit{Example:} ``Show me only Q1 2024'' (fixes the Time axis).\\
+    Result: a 2D table from a 3D cube.
+  \end{block}
+
+  \begin{block}{Dice --- Filter Multiple Dimensions}
+    Apply \textbf{multiple filters} across several dimensions, producing a sub-cube.\\
+    \textit{Example:} ``Q1 and Q2, Electronics and Clothing, Germany only.''\\
+    Result: a smaller cube with restricted ranges.
+  \end{block}
+
+  \begin{block}{Pivot (Rotate) --- Swap Axes}
+    \textbf{Re-orient} the result by swapping row and column dimensions.\\
+    \textit{Example:} Switch from Rows=Products/Columns=Regions
+    to Rows=Regions/Columns=Products.\\
+    No data changes --- only the presentation perspective changes.
+  \end{block}
+\end{frame}
+
+% -------- subsection: MOLAP / ROLAP / HOLAP --------
+
+\begin{frame}
+  \frametitle{OLAP Storage Variants: Overview}
+
+  \begin{block}{Three Technical Approaches}
+    How the multidimensional data is \textbf{physically stored} determines
+    performance, scalability, and flexibility.
+  \end{block}
+
+  \begin{tabularx}{\linewidth}{@{}l X@{}}
+    \toprule
+    \textbf{Variant} & \textbf{Storage Type} \\
+    \midrule
+    \textbf{MOLAP} & Multidimensional (proprietary cube database) \\
+    \textbf{ROLAP} & Relational (star/snowflake schema in RDBMS) \\
+    \textbf{HOLAP} & Hybrid (combination of both) \\
+    \bottomrule
+  \end{tabularx}
+
+  % PICTURE PLACEHOLDER
+  \begin{alertblock}{Picture: OLAP Scalability Matrix}
+    \textit{Add the scalability diagram:
+    X-axis = Size of data / tables, Y-axis = Query complexity.
+    MDDB OLAP (MOLAP) in bottom-left (small data, complex queries),
+    Hybrid OLAP (HOLAP) in middle,
+    Relational OLAP (ROLAP) in top-right (large data, simpler queries).
+    Use overlapping circles or regions.}
+  \end{alertblock}
+\end{frame}
+
+% ------------------------------------------------------------
+\begin{frame}
+  \frametitle{MOLAP: Multidimensional OLAP}
+
+  \begin{block}{How it Works}
+    Data is stored in a \textbf{proprietary multidimensional database} (cube file).
+    The cube is pre-built and pre-aggregated.
+    No traditional table structure --- dimensions and values are stored together.
+    All aggregation levels may be pre-computed in one cube.
+  \end{block}
+
+  \begin{columns}[T]
+    \column{0.48\textwidth}
+    \begin{block}{Advantages}
+      \begin{itemize}
+        \item Optimised for access via dimensions
+        \item Very fast for complex queries
+        \item Good for many dimensions
+        \item Good for deep hierarchies
+        \item Good for sparse data (low cardinality)
+      \end{itemize}
+    \end{block}
+
+    \column{0.48\textwidth}
+    \begin{alertblock}{Disadvantages}
+      \begin{itemize}
+        \item Poor scalability
+        \item Problematic for dimensions with very many values (high cardinality)
+        \item Size and performance issues at scale
+      \end{itemize}
+    \end{alertblock}
+  \end{columns}
+\end{frame}
+
+% ------------------------------------------------------------
+\begin{frame}
+  \frametitle{ROLAP: Relational OLAP}
+
+  \begin{block}{How it Works}
+    Data is stored in a standard \textbf{relational database (RDBMS)}.
+    The star schema is used (or fully denormalised tables).
+    OLAP cube operations are translated into SQL queries at runtime.
+    Views are used to represent different perspectives.
+  \end{block}
+
+  \begin{columns}[T]
+    \column{0.48\textwidth}
+    \begin{block}{Advantages}
+      \begin{itemize}
+        \item Excellent scalability
+        \item Works well for very large datasets (high cardinality)
+        \item Flat hierarchies are handled well
+        \item Highly dynamic (views can change without rebuilding)
+        \item Good for simple queries
+      \end{itemize}
+    \end{block}
+
+    \column{0.48\textwidth}
+    \begin{alertblock}{Disadvantages}
+      \begin{itemize}
+        \item Slower for very complex queries
+        \item Not ideal for many dimensions simultaneously
+        \item Deep hierarchies cause many joins
+        \item Sparse data is inefficient
+      \end{itemize}
+    \end{alertblock}
+  \end{columns}
+\end{frame}
+
+% ------------------------------------------------------------
+\begin{frame}
+  \frametitle{HOLAP: Hybrid OLAP}
+
+  \begin{block}{The Best of Both Worlds}
+    HOLAP combines \textbf{multidimensional} and \textbf{relational} storage.
+    The idea is to use each where it performs best:
+    \begin{itemize}
+      \item \textbf{MOLAP} storage for highly aggregated data and complex queries
+      \item \textbf{ROLAP} storage for detailed transaction-level data and large datasets
+    \end{itemize}
+  \end{block}
+
+  \begin{block}{When to Use HOLAP}
+    \begin{itemize}
+      \item When you need \textbf{both} summary speed and detail scalability
+      \item Complex analytical queries on summaries $\to$ use MOLAP layer
+      \item Mass queries on millions of detail rows $\to$ use ROLAP layer
+    \end{itemize}
+  \end{block}
+
+  \begin{examples}{Practical Assessment}
+    HOLAP is \textbf{pragmatic and effective} for most enterprise DWH scenarios.
+    The choice of storage type should be driven by the actual query patterns
+    and data characteristics --- not by vendor preference.
+  \end{examples}
+\end{frame}
+
+% -------- subsection: SQL Analytics --------
+
+\begin{frame}[fragile]
+  \frametitle{SQL Extensions for OLAP: ROLLUP}
+
+  Standard SQL has powerful OLAP extensions built into most modern databases.
+
+  \begin{block}{\texttt{GROUP BY ROLLUP}}
+    Generates subtotals and a grand total along a dimension hierarchy
+    in a single query.
+  \end{block}
+
+  \begin{lstlisting}[style=sqlstyle]
+SELECT region, product, SUM(revenue) AS total_revenue
+FROM fact_sales
+GROUP BY ROLLUP(region, product);
+  \end{lstlisting}
+
+  \begin{block}{Result Structure}
+    \begin{itemize}
+      \item One row per (region, product) combination
+      \item One subtotal row per region (product = NULL)
+      \item One grand total row (region = NULL, product = NULL)
+    \end{itemize}
+    This replaces multiple \texttt{UNION ALL} subqueries with a single,
+    optimised pass over the data.
+  \end{block}
+\end{frame}
+
+% ------------------------------------------------------------
+\begin{frame}[fragile]
+  \frametitle{SQL Extensions for OLAP: CUBE and GROUPING SETS}
+
+  \begin{block}{\texttt{GROUP BY CUBE}}
+    Generates \textbf{all possible combinations} of grouping attributes.
+  \end{block}
+
+  \begin{lstlisting}[style=sqlstyle]
+SELECT region, product, year, SUM(revenue)
+FROM fact_sales
+GROUP BY CUBE(region, product, year);
+  \end{lstlisting}
+
+  \begin{block}{\texttt{GROUPING SETS}}
+    Specify exactly \textbf{which grouping combinations} to compute.
+    More flexible than ROLLUP or CUBE.
+  \end{block}
+
+  \begin{lstlisting}[style=sqlstyle]
+SELECT region, product, year, SUM(revenue)
+FROM fact_sales
+GROUP BY GROUPING SETS (
+    (region, year),   -- by region and year
+    (product, year),  -- by product and year
+    (region),         -- by region only
+    ()                -- grand total
+);
+  \end{lstlisting}
+\end{frame}
+
+% ------------------------------------------------------------
+\begin{frame}[fragile]
+  \frametitle{SQL Window Functions}
+
+  \begin{block}{What are Window Functions?}
+    Window functions perform calculations \textbf{across a set of related rows}
+    without collapsing them into a single output row.
+    They use the \texttt{OVER()} clause.
+  \end{block}
+
+  \begin{lstlisting}[style=sqlstyle]
+-- Running total of revenue per region
+SELECT
+    date_key, region, revenue,
+    SUM(revenue) OVER (
+        PARTITION BY region
+        ORDER BY date_key
+        ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+    ) AS running_total,
+    LAG(revenue) OVER (
+        PARTITION BY region ORDER BY date_key
+    ) AS prev_period_revenue
+FROM fact_sales;
+  \end{lstlisting}
+
+  \begin{block}{Common Window Functions}
+    \texttt{ROW\_NUMBER()}, \texttt{RANK()}, \texttt{DENSE\_RANK()},
+    \texttt{LAG()}, \texttt{LEAD()}, \texttt{NTILE()},
+    \texttt{PERCENT\_RANK()}, \texttt{FIRST\_VALUE()}, \texttt{LAST\_VALUE()}
+  \end{block}
+\end{frame}
+
+% -------- subsection: BI Tools and Reporting --------
+
+\begin{frame}
+  \frametitle{From Data to Decision: The BI Layer}
+
+  \begin{block}{What the BI Layer Does}
+    The BI layer sits \textbf{on top of} the DWH and OLAP infrastructure.
+    It presents data to business users in a consumable format.
+    Target users are non-technical: managers, analysts, executives.
+  \end{block}
+
+  % PICTURE PLACEHOLDER
+  \begin{alertblock}{Picture: Complete BI Stack}
+    \textit{Add a vertical stack diagram from bottom to top:
+    (1) Source Systems (OLTP, SAP, CRM)
+    $\to$ (2) ETL / ELT Pipeline
+    $\to$ (3) Data Warehouse (Staging, Core, Data Marts)
+    $\to$ (4) OLAP / Semantic Layer (Cube or SQL views)
+    $\to$ (5) BI Tools (Dashboards, Reports, Ad-hoc queries)
+    $\to$ (6) Business Decision.
+    Add example product names at each layer (e.g.\ Airflow, Snowflake, Power BI).}
+  \end{alertblock}
+\end{frame}
+
+% ------------------------------------------------------------
+\begin{frame}
+  \frametitle{Types of BI Analysis}
+
+  \begin{block}{Descriptive Analytics --- \textit{What happened?}}
+    Summarises historical data. Standard reports and dashboards.\\
+    \textit{Example:} Monthly revenue report.
+  \end{block}
+
+  \begin{block}{Diagnostic Analytics --- \textit{Why did it happen?}}
+    Drill-down analysis to identify root causes.\\
+    \textit{Example:} Revenue dropped in Q3 --- which region? Which product?
+  \end{block}
+
+  \begin{block}{Predictive Analytics --- \textit{What will happen?}}
+    Statistical models and ML to forecast future outcomes.\\
+    \textit{Example:} Demand forecasting, churn prediction.
+  \end{block}
+
+  \begin{block}{Prescriptive Analytics --- \textit{What should we do?}}
+    Recommends actions based on data and models.\\
+    \textit{Example:} Automated pricing engine, inventory optimisation.
+  \end{block}
+\end{frame}
+
+% ------------------------------------------------------------
+\begin{frame}
+  \frametitle{Types of BI Reports and Dashboards}
+
+  \begin{block}{Standard / Operational Reporting}
+    \begin{itemize}
+      \item Fixed-format, scheduled reports delivered regularly
+      \item Example: End-of-day sales summary, monthly P\&L
+      \item Designed once, run repeatedly
+    \end{itemize}
+  \end{block}
+
+  \begin{block}{Ad-Hoc Analysis}
+    \begin{itemize}
+      \item Users create their own queries and reports on demand
+      \item Requires a user-friendly \textbf{semantic layer}
+      \item No IT involvement needed for each analysis
+    \end{itemize}
+  \end{block}
+
+  \begin{block}{Interactive Dashboards}
+    \begin{itemize}
+      \item Visual, real-time display of KPIs
+      \item Users can filter, drill down, and explore data
+      \item Tools: \textbf{Power BI}, \textbf{Tableau}, \textbf{Looker},
+        \textbf{Metabase}, \textbf{SAP BusinessObjects}
+    \end{itemize}
+  \end{block}
+\end{frame}
+
+% ------------------------------------------------------------
+\begin{frame}
+  \frametitle{KPIs and Metrics}
+
+  \begin{block}{Key Performance Indicator (KPI)}
+    A quantifiable measure used to evaluate success in achieving
+    a business objective. Not all metrics are KPIs --- only those
+    that are directly tied to strategic goals.
+  \end{block}
+
+  \begin{block}{Properties of a Good KPI}
+    \begin{itemize}
+      \item \textbf{Specific}: tied to a concrete business goal
+      \item \textbf{Measurable}: expressed as a number
+      \item \textbf{Actionable}: something the business can actually influence
+      \item \textbf{Timely}: available when decisions need to be made
+      \item \textbf{Consistently defined}: same meaning across all departments
+    \end{itemize}
+  \end{block}
+
+  \begin{examples}{Example KPIs}
+    Monthly Recurring Revenue (MRR), Customer Acquisition Cost (CAC),
+    Net Promoter Score (NPS), Inventory Turnover Rate,
+    Customer Lifetime Value (CLV), Sales Conversion Rate.
+  \end{examples}
+\end{frame}
+
+% ------------------------------------------------------------
+\begin{frame}
+  \frametitle{The Semantic Layer}
+
+  \begin{block}{Definition}
+    The \textbf{semantic layer} (business layer) maps the physical DWH
+    tables and columns to \textbf{business-friendly terms} that
+    non-technical users can understand and trust.
+  \end{block}
+
+  \begin{block}{What the Semantic Layer Provides}
+    \begin{itemize}
+      \item Abstracts SQL complexity from business users
+      \item Defines \textbf{metrics, KPIs, and dimensions} in business language
+      \item Ensures consistent definitions company-wide:
+        ``Revenue'' always means the same thing everywhere
+      \item Enables self-service analytics without IT involvement
+    \end{itemize}
+  \end{block}
+
+  \begin{examples}{Example Products}
+    \textbf{SSAS Tabular} (Microsoft), \textbf{Looker LookML},
+    \textbf{dbt metrics layer}, \textbf{Power BI datasets},
+    \textbf{SAP BW BEx} (Business Explorer)
+  \end{examples}
+\end{frame}
+
+% ------------------------------------------------------------
+\begin{frame}
+  \frametitle{Summary: From Raw Data to Business Decision}
+
+  % PICTURE PLACEHOLDER
+  \begin{alertblock}{Picture: End-to-End Flow Diagram}
+    \textit{Add a horizontal arrow diagram showing the complete journey:
+    (1) Raw Transactions (OLTP/ERP)
+    $\to$ (2) ETL/ELT with Data Quality
+    $\to$ (3) Data Warehouse (Staging + Core + Data Mart)
+    $\to$ (4) OLAP Cube / Semantic Layer
+    $\to$ (5) BI Dashboard / Report
+    $\to$ (6) Business Decision.
+    Add small icons or example artefacts at each step.}
+  \end{alertblock}
+
+  \begin{block}{Key Takeaways}
+    \begin{itemize}
+      \item \textbf{BI} is the ``intelligence service'' of the enterprise
+      \item The \textbf{DWH} is the foundation: integrated, historical, non-volatile
+      \item \textbf{ETL and data quality} determine the value of all analytics
+      \item \textbf{OLAP} enables fast, flexible, multidimensional analysis
+      \item \textbf{BI tools} translate data into decisions for business users
+    \end{itemize}
+  \end{block}
+\end{frame}

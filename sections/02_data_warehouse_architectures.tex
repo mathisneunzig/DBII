@@ -3,265 +3,375 @@
 % ============================================================
 \section{DWH Architectures}
 
-% ------------------------------------------------------------
-\begin{frame}
-  \frametitle{Overview: DWH Architecture Layers}
+% -------- subsection: Overview --------
 
-  A modern Data Warehouse is built in \textbf{logical layers}, each with a
-  specific responsibility.
+\begin{frame}
+  \frametitle{Approaches to Building a Decision-Support System}
+
+  There is no single ``correct'' DWH architecture. The right choice depends
+  on the organisation's size, budget, maturity, and data strategy.
+
+  \begin{block}{Four Main Approaches}
+    \begin{enumerate}
+      \item \textbf{Virtual Data Warehouse} --- direct access to operational systems
+      \item \textbf{Independent Data Marts} --- separate marts per department
+      \item \textbf{Monolithic Enterprise DWH} --- single centralised warehouse
+      \item \textbf{Integrated (Evolutionary) Architecture} --- EDW + dependent data marts
+    \end{enumerate}
+  \end{block}
+
+  \begin{alertblock}{Key Insight}
+    The evolution of most DWH landscapes follows this sequence.
+    Organisations often start with option 1 or 2 and eventually move
+    towards option 4.
+  \end{alertblock}
+\end{frame}
+
+% -------- subsection: Virtual DWH --------
+
+\begin{frame}
+  \frametitle{Architecture 1: Virtual Data Warehouse}
+
+  \begin{block}{Concept}
+    Instead of physically copying data into a warehouse, queries are directed
+    \textbf{directly to the operational source systems} --- or to extracts thereof.
+    No central data store is created.
+  \end{block}
 
   % PICTURE PLACEHOLDER
-  \begin{alertblock}{Picture: DWH Layer Architecture}
-    \textit{Add a vertical stack diagram showing:
-    Source Systems $\rightarrow$ Staging Area $\rightarrow$ Core DWH (ODS / Integration Layer)
-    $\rightarrow$ Data Marts $\rightarrow$ BI \& Reporting Tools.
-    Use arrows to show data flow direction.}
+  \begin{alertblock}{Picture: Virtual DWH Architecture}
+    \textit{Add a diagram showing operational source systems (Orders, Products,
+    Customers, Accounts, Invoices) on the left, connected via direct
+    query/access arrows to BI tools (Finance, Marketing, Sales) on the right.
+    Label it ``Virtual Warehouse''.}
   \end{alertblock}
 
+  \begin{columns}[T]
+    \column{0.48\textwidth}
+    \begin{block}{Advantages}
+      \begin{itemize}
+        \item Low development effort and cost
+        \item Fast results
+      \end{itemize}
+    \end{block}
+
+    \column{0.48\textwidth}
+    \begin{alertblock}{Disadvantages}
+      \begin{itemize}
+        \item Uncertain data quality
+        \item Burdens operational systems
+        \item \textbf{No historical data available}
+      \end{itemize}
+    \end{alertblock}
+  \end{columns}
+
+  \vspace{0.3em}
+  \textit{A virtual DWH is not really a warehouse.}
+\end{frame}
+
+% -------- subsection: Independent Data Marts --------
+
+\begin{frame}
+  \frametitle{Architecture 2: Independent Data Marts}
+
+  \begin{block}{Concept}
+    Each department builds its own data mart, sourced
+    \textbf{directly from operational systems}.
+    There is no central integration layer.
+  \end{block}
+
+  % PICTURE PLACEHOLDER
+  \begin{alertblock}{Picture: Independent Data Marts}
+    \textit{Add a diagram showing operational source systems feeding
+    directly into separate Finance, Marketing, and Sales data marts.
+    Show many-to-many extraction lines forming a ``spider web''.}
+  \end{alertblock}
+
+  \begin{block}{The m $\times$ n Extraction Problem}
+    With \textbf{m} independent data marts and \textbf{n} source systems,
+    up to $m \times n$ extraction interfaces are needed.
+    This quickly becomes an unmanageable web of connections.
+  \end{block}
 \end{frame}
 
 % ------------------------------------------------------------
 \begin{frame}
-  \frametitle{Source Layer}
+  \frametitle{Independent Data Marts: Pros and Cons}
 
-  \begin{block}{What lives here?}
+  \begin{columns}[T]
+    \column{0.48\textwidth}
+    \begin{block}{Advantages}
+      \begin{itemize}
+        \item Lower costs
+        \item Shorter implementation time
+        \item Fast ROI per department
+      \end{itemize}
+    \end{block}
+
+    \column{0.48\textwidth}
+    \begin{alertblock}{Disadvantages}
+      \begin{itemize}
+        \item Fragmented, isolated data (``data silos'')
+        \item Multiple conflicting ``versions of the truth''
+        \item Redundant and inefficient extracts
+        \item No consistent quality standards
+        \item Expensive and redundant storage
+        \item Maintenance becomes a nightmare
+        \item Long-term costs outweigh short-term benefits
+      \end{itemize}
+    \end{alertblock}
+  \end{columns}
+\end{frame}
+
+% -------- subsection: Monolithic DWH --------
+
+\begin{frame}
+  \frametitle{Architecture 3: Monolithic Enterprise Data Warehouse}
+
+  \begin{block}{Concept}
+    A single, large, centralised data warehouse that integrates all enterprise
+    data. End users query the warehouse directly --- there are no separate
+    data marts.
+  \end{block}
+
+  % PICTURE PLACEHOLDER
+  \begin{alertblock}{Picture: Monolithic EDW}
+    \textit{Add diagram: operational sources feeding into one large
+    central Enterprise Data Warehouse, with BI tools querying it directly.
+    No data marts layer.}
+  \end{alertblock}
+
+  \begin{columns}[T]
+    \column{0.48\textwidth}
+    \begin{block}{Advantage}
+      Integrated and consistent data across all departments.
+    \end{block}
+
+    \column{0.48\textwidth}
+    \begin{alertblock}{Disadvantages}
+      \begin{itemize}
+        \item Not suited for end-user queries (too complex/detailed)
+        \item Conflicting requirements from different departments
+        \item Poor query response times
+        \item Long project duration before any business value
+        \item High costs before ROI
+      \end{itemize}
+    \end{alertblock}
+  \end{columns}
+\end{frame}
+
+% -------- subsection: Integrated / Hub-and-Spoke --------
+
+\begin{frame}
+  \frametitle{Architecture 4: Integrated (Hub-and-Spoke)}
+
+  \begin{block}{Concept}
+    The recommended architecture. The \textbf{Enterprise Data Warehouse (EDW)}
+    acts as the central hub, and \textbf{dependent data marts} are built
+    on top of it for departmental use.
+    Built \textbf{iteratively}: start with one data mart, expand step by step.
+  \end{block}
+
+  % PICTURE PLACEHOLDER
+  \begin{alertblock}{Picture: Hub-and-Spoke Architecture}
+    \textit{Add diagram showing: Operational sources $\to$ EDW (Hub) $\to$
+    Finance Mart, Marketing Mart, Sales Mart, Personal Data Marts (Spokes).
+    Show metadata flowing horizontally. Include ODS as an optional component
+    between sources and the EDW.}
+  \end{alertblock}
+\end{frame}
+
+% ------------------------------------------------------------
+\begin{frame}
+  \frametitle{The Integrated Architecture: Building Iteratively}
+
+  \begin{block}{How the Integrated Architecture Grows}
+    \begin{enumerate}
+      \item Start with an \textbf{enterprise-wide subject model} and
+        infrastructure plan
+      \item Build the \textbf{first data mart}, simultaneously creating
+        the first layer of the EDW
+      \item Build the \textbf{second data mart}, extending the EDW with
+        shared/common data
+      \item Continue adding marts and expanding the EDW incrementally
+      \item Eventually add an \textbf{ODS} for near-real-time operational reporting
+      \item Incorporate \textbf{external and unstructured data}
+    \end{enumerate}
+  \end{block}
+
+  \begin{block}{"Think Big -- Start Small"}
+    The iterative approach allows the organisation to learn, reduce risk,
+    and deliver early value while building towards a comprehensive solution.
+  \end{block}
+\end{frame}
+
+% ------------------------------------------------------------
+\begin{frame}
+  \frametitle{The Integrated Architecture: Pros and Cons}
+
+  \begin{columns}[T]
+    \column{0.48\textwidth}
+    \begin{block}{Advantages}
+      \begin{itemize}
+        \item Consistent, integrated data
+        \item Single source of truth
+        \item Flexible and extensible
+        \item Reduced up-front investment
+        \item Early ROI via first data marts
+        \item Lower risk via iterative delivery
+        \item Data marts are optimised for end-user queries
+      \end{itemize}
+    \end{block}
+
+    \column{0.48\textwidth}
+    \begin{alertblock}{Challenges}
+      \begin{itemize}
+        \item Requires enterprise-wide vision and governance
+        \item Higher initial planning effort
+        \item Long path to full coverage
+        \item Needs experienced architects
+      \end{itemize}
+    \end{alertblock}
+  \end{columns}
+\end{frame}
+
+% -------- subsection: The Enterprise Data Warehouse --------
+
+\begin{frame}
+  \frametitle{The Enterprise Data Warehouse (EDW)}
+
+  \begin{block}{Definition and Purpose}
+    The EDW was introduced by Bill Inmon around 1990.
+    It \textbf{centralises, standardises, and integrates} data from all
+    operational sources.
+  \end{block}
+
+  \begin{block}{Goals of the EDW}
     \begin{itemize}
-      \item All \textbf{operational systems} that produce data
-      \item Can be heterogeneous: relational DBs, ERP, CRM, flat files, APIs,
-            IoT streams, spreadsheets
-      \item Data is typically in OLTP-normalised form
+      \item Build the \textbf{history} that is missing in OLTP systems
+      \item Integrate data from across the entire enterprise
+      \item Provide a \textbf{clean and reliable foundation} for the warehouse environment
+      \item Feed departmental and personal data marts
+      \item Be as \textbf{flexible as possible} for future extensions
     \end{itemize}
   \end{block}
 
-  \begin{block}{Challenges}
+  \begin{alertblock}{Important}
+    The EDW is \textbf{not} intended for direct end-user queries.
+    It is the backend engine that feeds the data marts.
+  \end{alertblock}
+\end{frame}
+
+% -------- subsection: Data Mart --------
+
+\begin{frame}
+  \frametitle{The Data Mart}
+
+  \begin{block}{Definition}
+    A \textbf{Data Mart} is a subset of the DWH environment focused on the
+    data and analytical needs of a \textbf{specific department or business domain}.
+  \end{block}
+
+  \begin{block}{Characteristics}
     \begin{itemize}
-      \item Different data formats, encodings, and naming conventions
-      \item Data quality issues: missing values, duplicates, inconsistencies
-      \item Access restrictions -- not all source systems expose data easily
-      \item Systems may not be under DWH team's control
+      \item Smaller in scope than the EDW
+      \item Aligned with a specific business requirement (Sales, Finance, HR)
+      \item Minimises complexity of data access for end users
+      \item Delivers good query performance
+      \item Uses dimensional models (star/snowflake schema)
     \end{itemize}
   \end{block}
 
-\end{frame}
-
-% ------------------------------------------------------------
-\begin{frame}
-  \frametitle{Staging Area}
-
-  \begin{block}{Purpose}
-    A \textbf{temporary landing zone} where raw data from source systems is
-    loaded before any transformation.
-  \end{block}
-
-  \begin{itemize}
-    \item Data is copied \textbf{as-is} from the sources (no transformation yet)
-    \item Allows validation and profiling before touching the core DWH
-    \item Decouples source systems from the integration layer
-    \item Usually \textbf{truncated and reloaded} with each ETL run
-    \item Not typically accessible to end users
-  \end{itemize}
-
-  \begin{examples}{Analogy}
-    Think of the staging area as a \textbf{receiving dock} in a warehouse.
-    Goods arrive, are checked, and only then moved to the shelves.
-  \end{examples}
-
-\end{frame}
-
-% ------------------------------------------------------------
-\begin{frame}
-  \frametitle{Core Data Warehouse / Integration Layer}
-
-  \begin{block}{Purpose}
-    The \textbf{single source of truth}: cleaned, integrated,
-    historically complete data for the entire enterprise.
-  \end{block}
-
-  \begin{itemize}
-    \item Data is transformed, validated, and harmonised
-    \item Stores \textbf{full history} of changes
-    \item Schema is typically highly normalised (3NF) in Inmon's approach
-      or uses dimensional modelling (Kimball's approach)
-    \item This layer feeds the data marts
-  \end{itemize}
-
-  \begin{block}{Two Common Modelling Approaches}
-    \begin{tabularx}{\linewidth}{@{}X X@{}}
-      \textbf{Inmon (Top-Down)} & \textbf{Kimball (Bottom-Up)} \\
-      Central, normalised DWH first & Build data marts first \\
-      Consistent \& governed & Faster time-to-value \\
-      Higher upfront cost & Risk of mart sprawl \\
+  \begin{block}{Types}
+    \begin{tabularx}{\linewidth}{@{}l X@{}}
+      \textbf{Dependent}   & Fed from the EDW. Consistent with enterprise data. \\
+      \textbf{Independent} & Sourced directly from operational systems. Risk of data silos. \\
+      \textbf{Personal}    & Individual analyst subset. Loosely governed. \\
     \end{tabularx}
   \end{block}
-
 \end{frame}
 
-% ------------------------------------------------------------
-\begin{frame}
-  \frametitle{Inmon vs.\ Kimball Architecture}
+% -------- subsection: ODS --------
 
-  % PICTURE PLACEHOLDER
-  \begin{alertblock}{Picture: Inmon vs.\ Kimball Comparison Diagram}
-    \textit{Add a side-by-side diagram:
-    Left side (Inmon): Sources $\rightarrow$ ETL $\rightarrow$ Centralised Normalised DWH
-    $\rightarrow$ Dependent Data Marts.
-    Right side (Kimball): Sources $\rightarrow$ ETL $\rightarrow$ Multiple Star-Schema
-    Data Marts $\rightarrow$ Bus Architecture / Conformed Dimensions.}
-  \end{alertblock}
-
-\end{frame}
-
-% ------------------------------------------------------------
-\begin{frame}
-  \frametitle{Data Mart Layer}
-
-  \begin{block}{Purpose}
-    Subject-specific views of the DWH data, optimised for
-    \textbf{end-user queries} in a particular business domain.
-  \end{block}
-
-  \begin{itemize}
-    \item Star or snowflake schema (dimensional model)
-    \item Typically read by BI tools, dashboards, and analysts
-    \item Aggregated or pre-computed data speeds up reporting
-  \end{itemize}
-
-  \begin{examples}{Examples}
-    \begin{itemize}
-      \item \textbf{Sales Mart}: revenue, orders, customer acquisition
-      \item \textbf{Finance Mart}: P\&L, cost centres, budget vs.\ actuals
-      \item \textbf{HR Mart}: headcount, turnover, absenteeism
-    \end{itemize}
-  \end{examples}
-
-\end{frame}
-
-% ------------------------------------------------------------
-\begin{frame}
-  \frametitle{ETL: Extract, Transform, Load}
-
-  \begin{block}{The data pipeline between layers}
-    \begin{itemize}
-      \item \textbf{Extract}: Read data from source systems (full or delta)
-      \item \textbf{Transform}: Cleanse, harmonise, aggregate, enrich
-      \item \textbf{Load}: Write the result into the DWH target tables
-    \end{itemize}
-  \end{block}
-
-  % PICTURE PLACEHOLDER
-  \begin{alertblock}{Picture: ETL Pipeline Diagram}
-    \textit{Add a horizontal flow diagram:
-    Source DB / File / API $\rightarrow$ [Extract] $\rightarrow$ Staging
-    $\rightarrow$ [Transform \& Cleanse] $\rightarrow$ Integration Layer
-    $\rightarrow$ [Load] $\rightarrow$ Data Mart.
-    Annotate with example transformations (date normalisation, deduplication, \ldots).}
-  \end{alertblock}
-
-\end{frame}
-
-% ------------------------------------------------------------
-\begin{frame}
-  \frametitle{ETL vs.\ ELT}
-
-  \begin{block}{Traditional ETL}
-    Transform data \textbf{before} loading it into the DWH.\\
-    Transformation logic runs in a dedicated ETL tool or server.
-  \end{block}
-
-  \begin{block}{Modern ELT (Extract, Load, Transform)}
-    Load raw data \textbf{first}, then transform it \textit{inside} the DWH.\\
-    Made possible by powerful cloud DWH engines (Snowflake, BigQuery, Redshift).
-  \end{block}
-
-  \begin{tabularx}{\linewidth}{@{}X X X@{}}
-    \toprule
-    & \textbf{ETL}              & \textbf{ELT} \\
-    \midrule
-    Transform where?  & External tool   & Inside DWH \\
-    Data in DWH       & Clean only      & Raw + clean \\
-    Flexibility       & Lower           & Higher \\
-    Typical context   & On-premise      & Cloud \\
-    \bottomrule
-  \end{tabularx}
-
-\end{frame}
-
-% ------------------------------------------------------------
 \begin{frame}
   \frametitle{The Operational Data Store (ODS)}
 
-  \begin{block}{What is an ODS?}
-    An intermediate database that integrates data from multiple sources
-    in \textbf{near real-time}, before it reaches the DWH.
+  \begin{block}{Definition (Inmon, early 1990s)}
+    The ODS is a \textbf{subject-oriented, integrated, volatile, and current}
+    data store that supports operational decision making.
   \end{block}
 
-  \begin{itemize}
-    \item Contains \textbf{current} (or very recent) integrated data
-    \item Can be queried for operational reporting (not historical analysis)
-    \item Serves as a buffer between OLTP sources and the DWH
-    \item Supports short-term decision making, while the DWH handles strategic analytics
-  \end{itemize}
+  \begin{block}{Key Properties}
+    \begin{itemize}
+      \item Contains \textbf{current} (or very recent) integrated data --- no full history
+      \item Data is \textbf{updated frequently} (near real-time or hourly)
+      \item Can \textbf{feed the DWH} with already-cleaned, integrated data
+      \item Or can be fed \textit{by} the DWH for operational reporting
+    \end{itemize}
+  \end{block}
 
-  \begin{block}{ODS vs.\ DWH}
+  \begin{block}{ODS vs.\ EDW}
     \begin{tabularx}{\linewidth}{@{}X X@{}}
-      \textbf{ODS}        & \textbf{DWH} \\
-      Current / recent data  & Full history \\
-      Updated frequently  & Loaded in batches \\
-      Operational use     & Analytical / strategic use \\
+      \textbf{ODS}                    & \textbf{EDW} \\
+      Subject-oriented                & Subject-oriented \\
+      Integrated                      & Integrated \\
+      \textbf{Temporary / volatile}   & \textbf{Non-volatile} \\
+      \textbf{Current data only}      & \textbf{Full historical data} \\
     \end{tabularx}
   \end{block}
+\end{frame}
 
+% -------- subsection: Metadata --------
+
+\begin{frame}
+  \frametitle{Metadata: The Data About Data}
+
+  \begin{block}{Definition}
+    \textbf{Metadata} is descriptive information about the structure and
+    content of data, and about the applications and processes that access it.
+    \hfill\small(MDC OIM Specification)
+  \end{block}
+
+  \begin{block}{Technical Metadata (maintained by IT)}
+    \begin{itemize}
+      \item Storage location, infrastructure (network, servers)
+      \item Number of columns and rows in a table
+      \item Table structure, format, relationships
+      \item ETL rules: extraction, transformation, load processes
+      \item Creation date and update schedules
+    \end{itemize}
+  \end{block}
+
+  \begin{block}{Business Metadata (maintained by users)}
+    \begin{itemize}
+      \item Business rules, transformation logic, calculation descriptions
+      \item Business-language descriptions of tables and fields
+      \item Data ownership and security classifications
+      \item Definition and purpose of each data element
+    \end{itemize}
+  \end{block}
 \end{frame}
 
 % ------------------------------------------------------------
 \begin{frame}
-  \frametitle{Lambda Architecture (Modern DWH)}
+  \frametitle{The Reference Architecture}
 
-  \begin{block}{Concept}
-    Combines \textbf{batch processing} (historical, high-throughput) with
-    \textbf{stream processing} (real-time, low-latency) in a unified architecture.
-  \end{block}
-
-  \begin{itemize}
-    \item \textbf{Batch layer}: processes all historical data periodically
-    \item \textbf{Speed layer}: processes new events in real time
-    \item \textbf{Serving layer}: merges results from both for queries
-  \end{itemize}
-
-  \begin{block}{Why it matters}
-    Many businesses need \textbf{both}: historical trend analysis
-    \textit{and} real-time dashboards (e.g.\ fraud detection).
-  \end{block}
-
-  \begin{alertblock}{Note (!)}
-    Lambda Architecture is an advanced/supplementary topic.
-    It will not appear in the exam.
+  % PICTURE PLACEHOLDER
+  \begin{alertblock}{Picture: DWH Reference Architecture (Bauer/G\"{u}nzel)}
+    \textit{Add the ``Referenzmodell für die DWH-Architektur'' diagram showing:
+    Data Sources $\to$ Extraction $\to$ Staging/Working Area $\to$
+    [Transformation] $\to$ Base Database $\to$ [Load] $\to$ Data Warehouse
+    $\to$ [Load] $\to$ Analysis.
+    Below: Monitor, DWH Manager, Metadata Manager, Repository.
+    Use dashed lines for control flow and solid for data flow.}
   \end{alertblock}
 
-\end{frame}
-
-% ------------------------------------------------------------
-\begin{frame}
-  \frametitle{Data Lake vs.\ Data Warehouse}
-
-  \begin{tabularx}{\linewidth}{@{}l X X@{}}
-    \toprule
-    \textbf{Property}  & \textbf{Data Warehouse}       & \textbf{Data Lake} \\
-    \midrule
-    Data format        & Structured                    & Any (raw) \\
-    Schema             & Schema-on-write               & Schema-on-read \\
-    Data quality       & High (cleansed)               & Variable (raw) \\
-    Users              & Analysts, BI tools            & Data scientists, ML \\
-    Query engine       & SQL                           & SQL, Python, Spark \ldots \\
-    Typical tech       & Snowflake, BigQuery           & S3, ADLS, Hadoop \\
-    Cost               & Higher (processing)           & Lower (storage) \\
-    \bottomrule
-  \end{tabularx}
-
-  \vspace{0.5em}
-  \begin{block}{Data Lakehouse (!)}
-    A newer paradigm that combines the flexibility of a data lake with
-    the governance and performance of a DWH (e.g.\ Databricks Delta Lake).
+  \begin{block}{Layers in the Reference Architecture}
+    \begin{itemize}
+      \item \textbf{Data Acquisition Layer}: Extraction + Staging + Transformation
+      \item \textbf{Storage Layer}: Base Database + DWH
+      \item \textbf{Analysis Layer}: Data Marts + OLAP + BI tools
+      \item \textbf{Management Layer}: Monitor, DWH Manager, Metadata/Repository
+    \end{itemize}
   \end{block}
-
 \end{frame}
