@@ -1,0 +1,106 @@
+\documentclass[10pt]{beamer}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{graphicx}
+\usepackage{eurosym}
+\usepackage{tikz}
+
+\usetheme{Madrid}
+\usecolortheme{default}
+
+% SQL / code listing style
+\lstdefinestyle{sqlstyle}{
+  language=SQL,
+  basicstyle=\small\ttfamily,
+  keywordstyle=\color{blue!80!black}\bfseries,
+  commentstyle=\color{gray!70}\itshape,
+  stringstyle=\color{orange!80!black},
+  breaklines=true,
+  showstringspaces=false,
+  frame=single,
+  backgroundcolor=\color{gray!10},
+  rulecolor=\color{gray!40},
+  tabsize=2,
+}
+
+% Relational algebra shorthand commands
+\newcommand{\rasel}{\sigma}
+\newcommand{\raproj}{\pi}
+\newcommand{\raren}{\rho}
+\newcommand{\rajoin}{\bowtie}
+\newcommand{\ralsem}{\ltimes}
+\newcommand{\rarsem}{\rtimes}
+
+% Outer join symbols (used in RA-to-SQL mapping tables)
+\newcommand{\leftouterjoin}{\mathbin{\ojoin\mkern-5.8mu\bowtie}}
+\newcommand{\rightouterjoin}{\mathbin{\bowtie\mkern-5.8mu\ojoin}}
+\newcommand{\fullouterjoin}{\mathbin{\ojoin\mkern-5.8mu\bowtie\mkern-5.8mu\ojoin}}
+% \ojoin fallback if stmaryrd not loaded:
+\providecommand{\ojoin}{\mathrel{\ooalign{$\bowtie$\cr\hidewidth$/$\hidewidth\cr}}}
+
+% Venn diagram for SQL joins: \vennjoin{leftFill}{centerFill}{rightFill}
+% Arguments are 1 (fill region) or 0 (leave empty)
+\newcommand{\vennjoin}[3]{%
+  \begin{tikzpicture}[scale=0.48, baseline=-0.5ex]
+    \ifnum#1=1
+      \begin{scope}[even odd rule]
+        \clip (-0.65,0) circle (1) (0.65,0) circle (1);
+        \fill[blue!30] (-0.65,0) circle (1);
+      \end{scope}
+    \fi
+    \ifnum#2=1
+      \begin{scope}
+        \clip (-0.65,0) circle (1);
+        \fill[blue!30] (0.65,0) circle (1);
+      \end{scope}
+    \fi
+    \ifnum#3=1
+      \begin{scope}[even odd rule]
+        \clip (0.65,0) circle (1) (-0.65,0) circle (1);
+        \fill[blue!30] (0.65,0) circle (1);
+      \end{scope}
+    \fi
+    \draw[thick] (-0.65,0) circle (1);
+    \draw[thick] (0.65,0) circle (1);
+    \node[font=\tiny\bfseries] at (-1.5,0) {A};
+    \node[font=\tiny\bfseries] at (1.5,0) {B};
+  \end{tikzpicture}%
+}
+
+\title[Databases II]{Databases II}
+\subtitle{Semester 4 (Theory)}
+\author[Neunzig, M.]{Mathis Neunzig}
+\institute[DHBW Mosbach]{DHBW Mosbach}
+\date[Autumn 2026]{Autumn 2026}
+
+\AtBeginSection[]{
+  \begin{frame}
+    \frametitle{Table of Contents}
+    \tableofcontents[currentsection]
+  \end{frame}
+}
+
+\begin{document}
+
+\frame{\titlepage}
+
+\begin{frame}
+  \frametitle{Table of Contents}
+  \tableofcontents
+\end{frame}
+
+\input{sections/00_introduction}
+\input{sections/01_data_warehouse}
+\input{sections/02_data_warehouse_architectures}
+\input{sections/03_data_warehouse_creation}
+\input{sections/04_olap}
+
+\end{document}

@@ -1,0 +1,267 @@
+% ============================================================
+%  Section 2: DWH Architectures
+% ============================================================
+\section{DWH Architectures}
+
+% ------------------------------------------------------------
+\begin{frame}
+  \frametitle{Overview: DWH Architecture Layers}
+
+  A modern Data Warehouse is built in \textbf{logical layers}, each with a
+  specific responsibility.
+
+  % PICTURE PLACEHOLDER
+  \begin{alertblock}{Picture: DWH Layer Architecture}
+    \textit{Add a vertical stack diagram showing:
+    Source Systems $\rightarrow$ Staging Area $\rightarrow$ Core DWH (ODS / Integration Layer)
+    $\rightarrow$ Data Marts $\rightarrow$ BI \& Reporting Tools.
+    Use arrows to show data flow direction.}
+  \end{alertblock}
+
+\end{frame}
+
+% ------------------------------------------------------------
+\begin{frame}
+  \frametitle{Source Layer}
+
+  \begin{block}{What lives here?}
+    \begin{itemize}
+      \item All \textbf{operational systems} that produce data
+      \item Can be heterogeneous: relational DBs, ERP, CRM, flat files, APIs,
+            IoT streams, spreadsheets
+      \item Data is typically in OLTP-normalised form
+    \end{itemize}
+  \end{block}
+
+  \begin{block}{Challenges}
+    \begin{itemize}
+      \item Different data formats, encodings, and naming conventions
+      \item Data quality issues: missing values, duplicates, inconsistencies
+      \item Access restrictions -- not all source systems expose data easily
+      \item Systems may not be under DWH team's control
+    \end{itemize}
+  \end{block}
+
+\end{frame}
+
+% ------------------------------------------------------------
+\begin{frame}
+  \frametitle{Staging Area}
+
+  \begin{block}{Purpose}
+    A \textbf{temporary landing zone} where raw data from source systems is
+    loaded before any transformation.
+  \end{block}
+
+  \begin{itemize}
+    \item Data is copied \textbf{as-is} from the sources (no transformation yet)
+    \item Allows validation and profiling before touching the core DWH
+    \item Decouples source systems from the integration layer
+    \item Usually \textbf{truncated and reloaded} with each ETL run
+    \item Not typically accessible to end users
+  \end{itemize}
+
+  \begin{examples}{Analogy}
+    Think of the staging area as a \textbf{receiving dock} in a warehouse.
+    Goods arrive, are checked, and only then moved to the shelves.
+  \end{examples}
+
+\end{frame}
+
+% ------------------------------------------------------------
+\begin{frame}
+  \frametitle{Core Data Warehouse / Integration Layer}
+
+  \begin{block}{Purpose}
+    The \textbf{single source of truth}: cleaned, integrated,
+    historically complete data for the entire enterprise.
+  \end{block}
+
+  \begin{itemize}
+    \item Data is transformed, validated, and harmonised
+    \item Stores \textbf{full history} of changes
+    \item Schema is typically highly normalised (3NF) in Inmon's approach
+      or uses dimensional modelling (Kimball's approach)
+    \item This layer feeds the data marts
+  \end{itemize}
+
+  \begin{block}{Two Common Modelling Approaches}
+    \begin{tabularx}{\linewidth}{@{}X X@{}}
+      \textbf{Inmon (Top-Down)} & \textbf{Kimball (Bottom-Up)} \\
+      Central, normalised DWH first & Build data marts first \\
+      Consistent \& governed & Faster time-to-value \\
+      Higher upfront cost & Risk of mart sprawl \\
+    \end{tabularx}
+  \end{block}
+
+\end{frame}
+
+% ------------------------------------------------------------
+\begin{frame}
+  \frametitle{Inmon vs.\ Kimball Architecture}
+
+  % PICTURE PLACEHOLDER
+  \begin{alertblock}{Picture: Inmon vs.\ Kimball Comparison Diagram}
+    \textit{Add a side-by-side diagram:
+    Left side (Inmon): Sources $\rightarrow$ ETL $\rightarrow$ Centralised Normalised DWH
+    $\rightarrow$ Dependent Data Marts.
+    Right side (Kimball): Sources $\rightarrow$ ETL $\rightarrow$ Multiple Star-Schema
+    Data Marts $\rightarrow$ Bus Architecture / Conformed Dimensions.}
+  \end{alertblock}
+
+\end{frame}
+
+% ------------------------------------------------------------
+\begin{frame}
+  \frametitle{Data Mart Layer}
+
+  \begin{block}{Purpose}
+    Subject-specific views of the DWH data, optimised for
+    \textbf{end-user queries} in a particular business domain.
+  \end{block}
+
+  \begin{itemize}
+    \item Star or snowflake schema (dimensional model)
+    \item Typically read by BI tools, dashboards, and analysts
+    \item Aggregated or pre-computed data speeds up reporting
+  \end{itemize}
+
+  \begin{examples}{Examples}
+    \begin{itemize}
+      \item \textbf{Sales Mart}: revenue, orders, customer acquisition
+      \item \textbf{Finance Mart}: P\&L, cost centres, budget vs.\ actuals
+      \item \textbf{HR Mart}: headcount, turnover, absenteeism
+    \end{itemize}
+  \end{examples}
+
+\end{frame}
+
+% ------------------------------------------------------------
+\begin{frame}
+  \frametitle{ETL: Extract, Transform, Load}
+
+  \begin{block}{The data pipeline between layers}
+    \begin{itemize}
+      \item \textbf{Extract}: Read data from source systems (full or delta)
+      \item \textbf{Transform}: Cleanse, harmonise, aggregate, enrich
+      \item \textbf{Load}: Write the result into the DWH target tables
+    \end{itemize}
+  \end{block}
+
+  % PICTURE PLACEHOLDER
+  \begin{alertblock}{Picture: ETL Pipeline Diagram}
+    \textit{Add a horizontal flow diagram:
+    Source DB / File / API $\rightarrow$ [Extract] $\rightarrow$ Staging
+    $\rightarrow$ [Transform \& Cleanse] $\rightarrow$ Integration Layer
+    $\rightarrow$ [Load] $\rightarrow$ Data Mart.
+    Annotate with example transformations (date normalisation, deduplication, \ldots).}
+  \end{alertblock}
+
+\end{frame}
+
+% ------------------------------------------------------------
+\begin{frame}
+  \frametitle{ETL vs.\ ELT}
+
+  \begin{block}{Traditional ETL}
+    Transform data \textbf{before} loading it into the DWH.\\
+    Transformation logic runs in a dedicated ETL tool or server.
+  \end{block}
+
+  \begin{block}{Modern ELT (Extract, Load, Transform)}
+    Load raw data \textbf{first}, then transform it \textit{inside} the DWH.\\
+    Made possible by powerful cloud DWH engines (Snowflake, BigQuery, Redshift).
+  \end{block}
+
+  \begin{tabularx}{\linewidth}{@{}X X X@{}}
+    \toprule
+    & \textbf{ETL}              & \textbf{ELT} \\
+    \midrule
+    Transform where?  & External tool   & Inside DWH \\
+    Data in DWH       & Clean only      & Raw + clean \\
+    Flexibility       & Lower           & Higher \\
+    Typical context   & On-premise      & Cloud \\
+    \bottomrule
+  \end{tabularx}
+
+\end{frame}
+
+% ------------------------------------------------------------
+\begin{frame}
+  \frametitle{The Operational Data Store (ODS)}
+
+  \begin{block}{What is an ODS?}
+    An intermediate database that integrates data from multiple sources
+    in \textbf{near real-time}, before it reaches the DWH.
+  \end{block}
+
+  \begin{itemize}
+    \item Contains \textbf{current} (or very recent) integrated data
+    \item Can be queried for operational reporting (not historical analysis)
+    \item Serves as a buffer between OLTP sources and the DWH
+    \item Supports short-term decision making, while the DWH handles strategic analytics
+  \end{itemize}
+
+  \begin{block}{ODS vs.\ DWH}
+    \begin{tabularx}{\linewidth}{@{}X X@{}}
+      \textbf{ODS}        & \textbf{DWH} \\
+      Current / recent data  & Full history \\
+      Updated frequently  & Loaded in batches \\
+      Operational use     & Analytical / strategic use \\
+    \end{tabularx}
+  \end{block}
+
+\end{frame}
+
+% ------------------------------------------------------------
+\begin{frame}
+  \frametitle{Lambda Architecture (Modern DWH)}
+
+  \begin{block}{Concept}
+    Combines \textbf{batch processing} (historical, high-throughput) with
+    \textbf{stream processing} (real-time, low-latency) in a unified architecture.
+  \end{block}
+
+  \begin{itemize}
+    \item \textbf{Batch layer}: processes all historical data periodically
+    \item \textbf{Speed layer}: processes new events in real time
+    \item \textbf{Serving layer}: merges results from both for queries
+  \end{itemize}
+
+  \begin{block}{Why it matters}
+    Many businesses need \textbf{both}: historical trend analysis
+    \textit{and} real-time dashboards (e.g.\ fraud detection).
+  \end{block}
+
+  \begin{alertblock}{Note (!)}
+    Lambda Architecture is an advanced/supplementary topic.
+    It will not appear in the exam.
+  \end{alertblock}
+
+\end{frame}
+
+% ------------------------------------------------------------
+\begin{frame}
+  \frametitle{Data Lake vs.\ Data Warehouse}
+
+  \begin{tabularx}{\linewidth}{@{}l X X@{}}
+    \toprule
+    \textbf{Property}  & \textbf{Data Warehouse}       & \textbf{Data Lake} \\
+    \midrule
+    Data format        & Structured                    & Any (raw) \\
+    Schema             & Schema-on-write               & Schema-on-read \\
+    Data quality       & High (cleansed)               & Variable (raw) \\
+    Users              & Analysts, BI tools            & Data scientists, ML \\
+    Query engine       & SQL                           & SQL, Python, Spark \ldots \\
+    Typical tech       & Snowflake, BigQuery           & S3, ADLS, Hadoop \\
+    Cost               & Higher (processing)           & Lower (storage) \\
+    \bottomrule
+  \end{tabularx}
+
+  \vspace{0.5em}
+  \begin{block}{Data Lakehouse (!)}
+    A newer paradigm that combines the flexibility of a data lake with
+    the governance and performance of a DWH (e.g.\ Databricks Delta Lake).
+  \end{block}
+
+\end{frame}

@@ -1,0 +1,278 @@
+% ============================================================
+%  Section 1: Data Warehouse
+% ============================================================
+\section{Data Warehouse}
+
+% ------------------------------------------------------------
+\begin{frame}
+  \frametitle{Motivation: Why Not Just Use a Regular Database?}
+
+  \begin{block}{Operational Databases (OLTP)}
+    \begin{itemize}
+      \item Designed for \textbf{day-to-day transactions}: inserts, updates, deletes
+      \item Many concurrent users, short queries, row-oriented storage
+      \item Example: booking a flight, processing a payment, updating stock
+    \end{itemize}
+  \end{block}
+
+  \begin{alertblock}{The Problem for Analytics}
+    \begin{itemize}
+      \item Analytical queries scan \textbf{millions of rows} -- too slow on OLTP systems
+      \item Data is scattered across \textbf{multiple systems} (ERP, CRM, \ldots)
+      \item Historical data is often not kept -- or not in a queryable form
+      \item Running reports on the live DB risks \textbf{performance degradation}
+    \end{itemize}
+  \end{alertblock}
+
+\end{frame}
+
+% ------------------------------------------------------------
+\begin{frame}
+  \frametitle{What Is a Data Warehouse?}
+
+  \begin{block}{Definition (W.H. Inmon, 1992)}
+    A Data Warehouse is a \textbf{subject-oriented}, \textbf{integrated},
+    \textbf{time-variant}, and \textbf{non-volatile} collection of data in support
+    of management's decision-making process.
+  \end{block}
+
+  \vspace{0.5em}
+  \begin{itemize}
+    \item Central repository that consolidates data from \textbf{multiple sources}
+    \item Optimised for \textbf{reading} and complex analytical queries
+    \item Stores data \textbf{historically} -- typically years of history
+    \item Foundation for Business Intelligence and reporting tools
+  \end{itemize}
+
+\end{frame}
+
+% ------------------------------------------------------------
+\begin{frame}
+  \frametitle{The Four Characteristics of a DWH (Inmon)}
+
+  \begin{block}{Subject-Oriented}
+    Organised around key business subjects (Sales, Customers, Products),
+    not around applications or processes.
+  \end{block}
+
+  \begin{block}{Integrated}
+    Data from heterogeneous sources is cleaned, transformed, and stored
+    in a \textbf{consistent format} (unified naming, units, encoding).
+  \end{block}
+
+  \begin{block}{Time-Variant}
+    Every record is associated with a \textbf{time stamp or period}.
+    Data is never simply overwritten -- changes are captured over time.
+  \end{block}
+
+  \begin{block}{Non-Volatile}
+    Data is \textbf{loaded} into the DWH and \textbf{read}, but never
+    updated or deleted in the operational sense. It is stable and persistent.
+  \end{block}
+
+\end{frame}
+
+% ------------------------------------------------------------
+\begin{frame}
+  \frametitle{OLTP vs.\ OLAP at a Glance}
+
+  \begin{tabularx}{\linewidth}{@{}l X X@{}}
+    \toprule
+    \textbf{Property}   & \textbf{OLTP}                     & \textbf{OLAP / DWH} \\
+    \midrule
+    Purpose             & Transactions / Operations         & Analysis / Reporting \\
+    Users               & Clerks, applications              & Analysts, managers \\
+    Query type          & Simple, predefined                & Complex, ad-hoc \\
+    Data scope          & Current state                     & Historical (years) \\
+    Data volume         & GB range                          & TB -- PB range \\
+    Operations          & INSERT / UPDATE / DELETE          & Mainly SELECT \\
+    Schema              & Highly normalised (3NF)           & Denormalised (star/snowflake) \\
+    Response time       & Milliseconds                      & Seconds -- minutes \\
+    Concurrency         & Thousands of users                & Dozens of analysts \\
+    \bottomrule
+  \end{tabularx}
+
+\end{frame}
+
+% ------------------------------------------------------------
+\begin{frame}
+  \frametitle{OLTP: A Closer Look}
+
+  \begin{block}{Online Transaction Processing (OLTP)}
+    \begin{itemize}
+      \item Manages the \textbf{operational data} of a business in real time
+      \item ACID properties are critical: Atomicity, Consistency, Isolation, Durability
+      \item High write throughput; short, targeted transactions
+    \end{itemize}
+  \end{block}
+
+  \begin{examples}{Typical OLTP Systems}
+    \begin{itemize}
+      \item Enterprise Resource Planning (ERP): SAP, Oracle EBS
+      \item Customer Relationship Management (CRM): Salesforce
+      \item Point-of-Sale systems, banking core systems
+    \end{itemize}
+  \end{examples}
+
+  \begin{alertblock}{Key Takeaway}
+    OLTP systems are the \textbf{source} of data for the DWH.
+    They are \textbf{not} designed for analytical workloads.
+  \end{alertblock}
+
+\end{frame}
+
+% ------------------------------------------------------------
+\begin{frame}
+  \frametitle{Key Concepts: Dimensions and Facts}
+
+  \begin{block}{Fact Table}
+    \begin{itemize}
+      \item Contains \textbf{measurable, quantitative data} (metrics/facts)
+      \item Examples: revenue, quantity sold, number of page views
+      \item Typically very large (millions to billions of rows)
+    \end{itemize}
+  \end{block}
+
+  \begin{block}{Dimension Tables}
+    \begin{itemize}
+      \item Contain \textbf{descriptive attributes} used to filter and group facts
+      \item Examples: Customer, Product, Date, Region, Store
+      \item Relatively small; provide context for measurements
+    \end{itemize}
+  \end{block}
+
+  \begin{examples}{Example: Online Shop}
+    A sale is the \textit{fact}. The \textit{dimensions} are:
+    \textbf{What} was sold (Product), \textbf{Who} bought it (Customer),
+    \textbf{When} (Date), \textbf{Where} (Region).
+  \end{examples}
+
+\end{frame}
+
+% ------------------------------------------------------------
+\begin{frame}
+  \frametitle{The Star Schema}
+
+  \begin{block}{Structure}
+    \begin{itemize}
+      \item One central \textbf{fact table} linked to multiple \textbf{dimension tables}
+      \item Dimension tables are \textbf{denormalised} (flat, wide tables)
+      \item Simple joins -- optimised for query performance
+    \end{itemize}
+  \end{block}
+
+  % PICTURE PLACEHOLDER
+  \begin{alertblock}{Picture: Star Schema Diagram}
+    \textit{Add a diagram here showing a central FACT\_SALES table connected via
+    foreign keys to DIM\_DATE, DIM\_CUSTOMER, DIM\_PRODUCT, and DIM\_REGION.
+    Highlight the star shape formed by the relationships.}
+  \end{alertblock}
+
+\end{frame}
+
+% ------------------------------------------------------------
+\begin{frame}
+  \frametitle{The Snowflake Schema}
+
+  \begin{block}{Structure}
+    \begin{itemize}
+      \item Extension of the star schema: dimension tables are \textbf{normalised}
+      \item Dimension attributes split into sub-dimension tables
+      \item Reduces data redundancy at the cost of more joins
+    \end{itemize}
+  \end{block}
+
+  \begin{block}{Star vs.\ Snowflake}
+    \begin{tabularx}{\linewidth}{@{}X X X@{}}
+      \toprule
+      & \textbf{Star} & \textbf{Snowflake} \\
+      \midrule
+      Normalisation  & Denormalised     & Partially normalised \\
+      Query speed    & Faster           & Slightly slower \\
+      Storage        & More redundancy  & Less redundancy \\
+      Complexity     & Simple           & More complex \\
+      \bottomrule
+    \end{tabularx}
+  \end{block}
+
+\end{frame}
+
+% ------------------------------------------------------------
+\begin{frame}
+  \frametitle{The Date Dimension}
+
+  The \textbf{date/time dimension} is present in virtually every DWH.
+
+  \begin{examples}{Typical Attributes of DIM\_DATE}
+    \begin{tabularx}{\linewidth}{@{}l X@{}}
+      \toprule
+      \textbf{Column}      & \textbf{Example value} \\
+      \midrule
+      date\_key            & 20240315 \\
+      full\_date           & 2024-03-15 \\
+      day\_of\_week        & Friday \\
+      week\_of\_year       & 11 \\
+      month\_name          & March \\
+      quarter              & Q1 \\
+      year                 & 2024 \\
+      is\_holiday          & false \\
+      fiscal\_year         & FY2024 \\
+      \bottomrule
+    \end{tabularx}
+  \end{examples}
+
+  Pre-populated for all dates in the analysis range (e.g.\ 2000--2030).
+
+\end{frame}
+
+% ------------------------------------------------------------
+\begin{frame}
+  \frametitle{Slowly Changing Dimensions (SCD)}
+
+  \begin{block}{The Problem}
+    Dimension data \textbf{changes over time} (e.g.\ a customer moves cities).
+    How do we handle this in a non-volatile DWH?
+  \end{block}
+
+  \begin{block}{SCD Type 1 -- Overwrite}
+    Simply update the old value. No history is kept.\\
+    \textit{Use when history does not matter.}
+  \end{block}
+
+  \begin{block}{SCD Type 2 -- Add a New Row}
+    Insert a new row with the new value and a validity date range.\\
+    Old rows are kept with their original values.\\
+    \textit{Most common approach.}
+  \end{block}
+
+  \begin{block}{SCD Type 3 -- Add a New Column}
+    Add a column for ``previous value''.\\
+    \textit{Only works for one level of history.}
+  \end{block}
+
+\end{frame}
+
+% ------------------------------------------------------------
+\begin{frame}
+  \frametitle{Data Marts}
+
+  \begin{block}{Definition}
+    A \textbf{data mart} is a subset of the Data Warehouse focused on a
+    \textbf{specific business domain} or department.
+  \end{block}
+
+  \begin{itemize}
+    \item Examples: Sales Mart, Finance Mart, HR Mart
+    \item Contains only the data relevant to that domain
+    \item Faster queries due to smaller scope
+    \item Can be sourced from the central DWH (\textit{dependent data mart})
+      or built independently (\textit{independent data mart})
+  \end{itemize}
+
+  \begin{alertblock}{Independent Data Marts: A Warning}
+    Multiple independent data marts often lead to \textbf{data silos}:
+    inconsistent definitions, duplicated data, conflicting numbers.
+    This is sometimes called a \textit{``data mart sprawl''}.
+  \end{alertblock}
+
+\end{frame}

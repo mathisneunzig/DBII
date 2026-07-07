@@ -1,0 +1,262 @@
+% ============================================================
+%  Section 3: How to Create a Data Warehouse
+% ============================================================
+\section{Creating a Data Warehouse}
+
+% ------------------------------------------------------------
+\begin{frame}
+  \frametitle{Overview: The DWH Development Process}
+
+  Building a DWH is an iterative, multi-phase project.
+
+  % PICTURE PLACEHOLDER
+  \begin{alertblock}{Picture: DWH Development Lifecycle}
+    \textit{Add a circular/iterative lifecycle diagram with phases:
+    (1) Requirements Analysis $\rightarrow$ (2) Source Analysis
+    $\rightarrow$ (3) Data Modelling $\rightarrow$ (4) ETL Design \& Dev
+    $\rightarrow$ (5) Testing $\rightarrow$ (6) Deployment
+    $\rightarrow$ (7) Monitoring \& Maintenance $\rightarrow$ back to (1).}
+  \end{alertblock}
+
+  \begin{block}{Key Principle}
+    Do \textbf{not} try to build everything at once.
+    Start with a focused scope (one subject area / one data mart)
+    and expand iteratively.
+  \end{block}
+
+\end{frame}
+
+% ------------------------------------------------------------
+\begin{frame}
+  \frametitle{Phase 1: Requirements Analysis}
+
+  \begin{block}{Goal}
+    Understand \textbf{what questions} the business needs to answer.
+  \end{block}
+
+  \begin{itemize}
+    \item Interview stakeholders: managers, analysts, power users
+    \item Identify \textbf{Key Performance Indicators} (KPIs)
+    \item Determine the required \textbf{granularity} of data
+    \item Define the \textbf{history depth} needed (1 year? 10 years?)
+    \item Understand refresh frequency: daily batch? Near real-time?
+  \end{itemize}
+
+  \begin{examples}{Questions to ask stakeholders}
+    \begin{itemize}
+      \item \textit{``What decisions does your department make weekly?''}
+      \item \textit{``What data do you currently look up manually?''}
+      \item \textit{``What would you do if you had this data instantly?''}
+    \end{itemize}
+  \end{examples}
+
+\end{frame}
+
+% ------------------------------------------------------------
+\begin{frame}
+  \frametitle{Phase 2: Source System Analysis}
+
+  \begin{block}{Goal}
+    Understand and document the \textbf{data landscape}: what data exists,
+    where it lives, and how good it is.
+  \end{block}
+
+  \begin{itemize}
+    \item Inventory all source systems and their owners
+    \item Understand the data model of each source (schema, relationships)
+    \item Assess \textbf{data quality}: completeness, accuracy, consistency
+    \item Identify \textbf{change detection}: how to know what changed since last load?
+      (timestamps, CDC, log-based, full-diff)
+    \item Negotiate \textbf{data access}: APIs, DB connections, file exports
+  \end{itemize}
+
+  \begin{alertblock}{Common Surprise}
+    Data quality in source systems is \textbf{almost always worse}
+    than stakeholders expect. Plan for data cleansing effort.
+  \end{alertblock}
+
+\end{frame}
+
+% ------------------------------------------------------------
+\begin{frame}
+  \frametitle{Kimball's Dimensional Modelling Steps}
+
+  Ralph Kimball defined a 4-step process for designing the dimensional model:
+
+  \begin{enumerate}
+    \item \textbf{Select the business process}\\
+      e.g.\ ``order management'', ``customer payments''
+    \item \textbf{Declare the grain}\\
+      The most atomic level of data to store.\\
+      e.g.\ ``one row per order line item''
+    \item \textbf{Identify the dimensions}\\
+      Who, what, when, where, why -- the context of each fact.
+    \item \textbf{Identify the facts}\\
+      The numeric measurements: revenue, quantity, duration, \ldots
+  \end{enumerate}
+
+  \begin{alertblock}{Grain First!}
+    Declaring the grain \textbf{before} choosing facts or dimensions
+    is the most important step. Everything else follows from it.
+  \end{alertblock}
+
+\end{frame}
+
+% ------------------------------------------------------------
+\begin{frame}
+  \frametitle{Phase 3: Data Modelling -- Star Schema Design}
+
+  \begin{block}{Designing the Fact Table}
+    \begin{itemize}
+      \item One row = one \textbf{event at the declared grain}
+      \item Contains foreign keys to all dimension tables
+      \item Contains the \textbf{additive measures} (facts): amount, count, duration
+      \item Avoid storing textual descriptions in the fact table
+    \end{itemize}
+  \end{block}
+
+  \begin{block}{Additive vs.\ Non-Additive Facts}
+    \begin{tabularx}{\linewidth}{@{}l X@{}}
+      \toprule
+      \textbf{Type}      & \textbf{Description} \\
+      \midrule
+      Additive           & Can SUM across all dimensions (e.g.\ revenue) \\
+      Semi-additive      & Can SUM across some dimensions (e.g.\ balance) \\
+      Non-additive       & Cannot SUM meaningfully (e.g.\ ratio, price) \\
+      \bottomrule
+    \end{tabularx}
+  \end{block}
+
+\end{frame}
+
+% ------------------------------------------------------------
+\begin{frame}
+  \frametitle{Phase 4: ETL Development}
+
+  \begin{block}{Extract}
+    \begin{itemize}
+      \item Connect to source system and pull data (full or incremental)
+      \item \textbf{Change Data Capture (CDC)}: only extract what changed
+      \item Common CDC methods: timestamp columns, database triggers, log mining
+    \end{itemize}
+  \end{block}
+
+  \begin{block}{Transform}
+    \begin{itemize}
+      \item Cleanse: handle nulls, remove duplicates, fix encodings
+      \item Harmonise: map codes to uniform values (e.g.\ ``M'' and ``male'' $\to$ ``Male'')
+      \item Derive new attributes (e.g.\ age from birth date)
+      \item Apply \textbf{surrogate keys}: replace natural keys with integer DWH keys
+    \end{itemize}
+  \end{block}
+
+  \begin{block}{Load}
+    \begin{itemize}
+      \item Insert new dimension records; apply SCD logic for changes
+      \item Insert new fact rows (usually append-only)
+    \end{itemize}
+  \end{block}
+
+\end{frame}
+
+% ------------------------------------------------------------
+\begin{frame}
+  \frametitle{Surrogate Keys}
+
+  \begin{block}{Natural Key vs.\ Surrogate Key}
+    \begin{itemize}
+      \item \textbf{Natural key}: the business identifier from the source system
+        (e.g.\ customer number, product code)
+      \item \textbf{Surrogate key}: a meaningless integer generated by the DWH
+        (e.g.\ 1, 2, 3, \ldots)
+    \end{itemize}
+  \end{block}
+
+  \begin{block}{Why Use Surrogate Keys?}
+    \begin{itemize}
+      \item Natural keys can change in source systems
+      \item Surrogate keys remain stable -- essential for SCD Type 2
+      \item Smaller keys = faster joins (integer vs.\ string)
+      \item Decouples the DWH from source system changes
+    \end{itemize}
+  \end{block}
+
+\end{frame}
+
+% ------------------------------------------------------------
+\begin{frame}
+  \frametitle{Data Quality in the ETL Process}
+
+  \begin{block}{Common Data Quality Issues}
+    \begin{itemize}
+      \item \textbf{Completeness}: missing or NULL values
+      \item \textbf{Consistency}: same entity represented differently
+        (``GmbH'' vs.\ ``Gesellschaft mbH'')
+      \item \textbf{Accuracy}: values that are wrong or outdated
+      \item \textbf{Timeliness}: data that arrives too late to be useful
+      \item \textbf{Duplicates}: same record loaded multiple times
+    \end{itemize}
+  \end{block}
+
+  \begin{block}{Strategies}
+    \begin{itemize}
+      \item Validate at load time; reject or quarantine bad records
+      \item Use a \textbf{``bad data'' / error table} for rejected rows
+      \item Implement data quality metrics and monitoring dashboards
+      \item Work with source system owners to fix issues at the source
+    \end{itemize}
+  \end{block}
+
+\end{frame}
+
+% ------------------------------------------------------------
+\begin{frame}
+  \frametitle{Phase 5--7: Testing, Deployment, and Monitoring}
+
+  \begin{block}{Testing}
+    \begin{itemize}
+      \item \textbf{Row count checks}: did all expected rows load?
+      \item \textbf{Reconciliation}: totals in DWH match totals in source
+      \item \textbf{Regression tests}: check that historical data has not changed
+      \item \textbf{Business validation}: have domain experts sign off on reports
+    \end{itemize}
+  \end{block}
+
+  \begin{block}{Deployment \& Monitoring}
+    \begin{itemize}
+      \item Automate ETL jobs with a scheduler (e.g.\ Apache Airflow, cron)
+      \item Monitor job run times and failure rates
+      \item Alert on late arrivals, row count deviations, or quality failures
+      \item Maintain \textbf{lineage documentation}: where does each column come from?
+    \end{itemize}
+  \end{block}
+
+\end{frame}
+
+% ------------------------------------------------------------
+\begin{frame}
+  \frametitle{Common DWH Tools (Overview)}
+
+  \begin{block}{ETL / ELT Tools}
+    \begin{itemize}
+      \item Traditional: \textbf{Informatica PowerCenter}, \textbf{SSIS} (Microsoft),
+        \textbf{Talend}
+      \item Modern / cloud-native: \textbf{dbt} (data build tool),
+        \textbf{Apache Spark}, \textbf{Fivetran}
+    \end{itemize}
+  \end{block}
+
+  \begin{block}{DWH Storage Engines}
+    \begin{itemize}
+      \item On-premise: \textbf{Teradata}, \textbf{SAP BW}, \textbf{Oracle DW}
+      \item Cloud: \textbf{Snowflake}, \textbf{Google BigQuery},
+        \textbf{Amazon Redshift}, \textbf{Azure Synapse}
+    \end{itemize}
+  \end{block}
+
+  \begin{alertblock}{Note (!)}
+    Tool knowledge is supplementary. The concepts and architecture
+    are what matter for this course.
+  \end{alertblock}
+
+\end{frame}
